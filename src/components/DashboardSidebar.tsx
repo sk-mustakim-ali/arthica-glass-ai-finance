@@ -12,6 +12,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import arthicaLogo from "@/assets/arthica-logo.png";
 
 const menuItems = [
   { title: "Home", url: "/dashboard", icon: Home },
@@ -33,7 +34,7 @@ export function DashboardSidebar() {
         <div className="flex items-center justify-between p-4 border-b border-border">
           {!isCollapsed && (
             <Link to="/dashboard">
-              <h2 className="text-xl font-bold gradient-text">Arthica</h2>
+              <img src={arthicaLogo} alt="Arthica" className="h-8" />
             </Link>
           )}
           <SidebarTrigger>

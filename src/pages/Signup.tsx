@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import arthicaLogo from "@/assets/arthica-logo.png";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -44,8 +45,8 @@ const Signup = () => {
       >
         <div className="glass-card p-8">
           <div className="text-center mb-8">
-            <Link to="/">
-              <h1 className="text-3xl font-bold gradient-text mb-2">Arthica</h1>
+            <Link to="/" className="inline-block mb-4">
+              <img src={arthicaLogo} alt="Arthica" className="h-12 mx-auto" />
             </Link>
             <p className="text-muted-foreground">Create your account and start your journey</p>
           </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
+import arthicaLogo from "@/assets/arthica-logo.png";
 
 const Index = () => {
   const features = [
@@ -44,13 +45,14 @@ const Index = () => {
       <nav className="fixed top-0 w-full z-50 glass-card">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <motion.h1
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-2xl font-bold gradient-text"
             >
-              Arthica
-            </motion.h1>
+              <Link to="/">
+                <img src={arthicaLogo} alt="Arthica" className="h-8" />
+              </Link>
+            </motion.div>
             <div className="flex items-center gap-4">
               <Link to="/login">
                 <Button variant="ghost" className="glass-button">
@@ -173,7 +175,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h4 className="text-xl font-bold mb-4 gradient-text">Arthica</h4>
+              <img src={arthicaLogo} alt="Arthica" className="h-10 mb-4" />
               <p className="text-muted-foreground">
                 AI-powered financial platform for smarter money management
               </p>
