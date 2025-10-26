@@ -33,8 +33,9 @@ export function DashboardSidebar() {
       <SidebarContent>
         <div className="flex items-center justify-between p-4 border-b border-border">
           {!isCollapsed && (
-            <Link to="/dashboard">
+            <Link to="/dashboard" className="flex items-center gap-3">
               <img src={arthicaLogo} alt="Arthica" className="h-8" />
+              <h2 className="text-xl font-bold gradient-text">Arthica</h2>
             </Link>
           )}
           <SidebarTrigger>

@@ -45,8 +45,9 @@ const Signup = () => {
       >
         <div className="glass-card p-8">
           <div className="text-center mb-8">
-            <Link to="/" className="inline-block mb-4">
-              <img src={arthicaLogo} alt="Arthica" className="h-12 mx-auto" />
+            <Link to="/" className="inline-flex items-center gap-3 mb-4">
+              <img src={arthicaLogo} alt="Arthica" className="h-12" />
+              <h1 className="text-3xl font-bold gradient-text">Arthica</h1>
             </Link>
             <p className="text-muted-foreground">Create your account and start your journey</p>
           </div>

@@ -48,9 +48,11 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
             >
-              <Link to="/">
+              <Link to="/" className="flex items-center gap-3">
                 <img src={arthicaLogo} alt="Arthica" className="h-8" />
+                <span className="text-2xl font-bold gradient-text">Arthica</span>
               </Link>
             </motion.div>
             <div className="flex items-center gap-4">
@@ -175,7 +177,10 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <img src={arthicaLogo} alt="Arthica" className="h-10 mb-4" />
+              <div className="flex items-center gap-3 mb-4">
+                <img src={arthicaLogo} alt="Arthica" className="h-10" />
+                <h4 className="text-xl font-bold gradient-text">Arthica</h4>
+              </div>
               <p className="text-muted-foreground">
                 AI-powered financial platform for smarter money management
               </p>
