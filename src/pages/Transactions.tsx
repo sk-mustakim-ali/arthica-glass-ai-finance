@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowUpCircle, ArrowDownCircle, Plus, DollarSign, Tag, FileText } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Plus, DollarSign, Tag, FileText, Edit3 } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EditTransactionModal } from "@/components/ui/EditTransactionModal";
 
 interface Transaction {
   id: string;
@@ -47,6 +49,9 @@ const Transactions = () => {
       timestamp: new Date(Date.now() - 172800000),
     },
   ]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const [formData, setFormData] = useState({
     amount: "",
@@ -104,6 +109,24 @@ const Transactions = () => {
     if (hours < 1) return "Just now";
     if (hours < 24) return `${hours}h ago`;
     return date.toLocaleDateString();
+  };
+
+  const handleEditClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  // Convert Transaction to modal format
+  const getModalTransaction = () => {
+    if (!selectedTransaction) return undefined;
+    return {
+      id: selectedTransaction.id,
+      amount: selectedTransaction.amount,
+      category: selectedTransaction.category,
+      type: selectedTransaction.type,
+      note: selectedTransaction.description,
+      date: selectedTransaction.timestamp.toISOString().split('T')[0],
+    };
   };
 
   return (
@@ -260,12 +283,12 @@ const Transactions = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                           whileHover={{ scale: 1.02, y: -2 }}
-                          className="glass-card p-4 rounded-2xl border border-white/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 cursor-pointer"
+                          className="glass-card p-4 rounded-2xl border border-white/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
                               <div
-                                className={`p-2 rounded-xl ${
+                                className={`p-2 rounded-xl flex-shrink-0 ${
                                   transaction.type === "income"
                                     ? "bg-green-500/20 text-green-400"
                                     : "bg-red-500/20 text-red-400"
@@ -291,7 +314,7 @@ const Transactions = () => {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                               <p
                                 className={`text-lg font-bold ${
                                   transaction.type === "income" ? "text-green-400" : "text-red-400"
@@ -299,6 +322,23 @@ const Transactions = () => {
                               >
                                 {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
                               </p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={() => handleEditClick(transaction)}
+                                      className="p-2 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 hover:shadow-[0_0_15px_rgba(110,231,183,0.3)] transition-all duration-300 flex-shrink-0"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </motion.button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-popover/95 backdrop-blur-md border-border/50">
+                                    <p>Edit Transaction</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </div>
                         </motion.div>
@@ -311,6 +351,16 @@ const Transactions = () => {
           </main>
         </div>
       </div>
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={getModalTransaction()}
+      />
     </SidebarProvider>
   );
 };
