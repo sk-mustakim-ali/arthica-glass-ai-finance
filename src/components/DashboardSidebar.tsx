@@ -16,7 +16,7 @@ import arthicaLogo from "@/assets/arthica-logo.png";
 
 const menuItems = [
   { title: "Home", url: "/dashboard", icon: Home },
-  { title: "Transactions", url: "/dashboard/transactions", icon: Receipt },
+  { title: "Transactions", url: "/transactions", icon: Receipt },
   { title: "Budgets", url: "/dashboard/budgets", icon: Wallet },
   { title: "Liabilities", url: "/dashboard/liabilities", icon: CreditCard },
   { title: "AI Advisor", url: "/dashboard/advisor", icon: Brain },
