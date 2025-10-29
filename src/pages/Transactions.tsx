@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowUpCircle, ArrowDownCircle, Plus, DollarSign, Tag, FileText, Edit3 } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Plus, DollarSign, Tag, FileText, PencilLine } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -331,7 +331,7 @@ const Transactions = () => {
                                       onClick={() => handleEditClick(transaction)}
                                       className="p-2 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 hover:shadow-[0_0_15px_rgba(110,231,183,0.3)] transition-all duration-300 flex-shrink-0"
                                     >
-                                      <Edit3 className="w-4 h-4" />
+                                      <PencilLine className="w-4 h-4" />
                                     </motion.button>
                                   </TooltipTrigger>
                                   <TooltipContent className="bg-popover/95 backdrop-blur-md border-border/50">
