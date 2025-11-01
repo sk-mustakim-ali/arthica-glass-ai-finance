@@ -30,9 +30,9 @@ const Signup = () => {
     // Mock registration
     toast({
       title: "Account created!",
-      description: "Welcome to Arthica. Let's get started!",
+      description: "Let's set up your profile.",
     });
-    navigate("/dashboard");
+    navigate("/onboarding");
   };
 
   return (
