@@ -6,42 +6,67 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface Transaction {
-  id: string;
-  amount: number;
-  category: string;
-  type: "income" | "expense";
-  note: string;
-  date: string;
-}
+import {
+  updateTransaction,
+  deleteTransaction,
+} from "@/services/queryWrappers";
+
+import { useToast } from "@/hooks/use-toast";
+import type { UITransaction } from "@/pages/Transactions";
 
 interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transaction?: Transaction;
+  transaction?: UITransaction;
 }
 
 export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   isOpen,
   onClose,
-  transaction = {
-    id: "1",
-    amount: 1250,
-    category: "Salary",
-    type: "income",
-    note: "Monthly salary payment",
-    date: "2025-01-15",
-  },
+  transaction,
 }) => {
-  const [formData, setFormData] = React.useState(transaction);
+  const { toast } = useToast();
+
+  // 🔹 formData always stores a Date object
+  const [formData, setFormData] = React.useState<UITransaction | null>(null);
+
+  // 🔹 this string is ONLY for the <input type="date">
+  const [transactionDateString, setTransactionDateString] =
+    React.useState<string>("");
+
   const [isLoading, setIsLoading] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // --------------------------------------------
+  // Sync modal when a new transaction is opened
+  // --------------------------------------------
+  React.useEffect(() => {
+    if (transaction) {
+      const isoDate = transaction.date
+        ? transaction.date.toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
+
+      setTransactionDateString(isoDate);
+
+      setFormData({
+        ...transaction,
+        description: transaction.description ?? "",
+        date: transaction.date, // this stays as Date
+      });
+    }
+  }, [transaction]);
 
   const categories = [
     "Salary",
@@ -57,50 +82,107 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     "Other",
   ];
 
-  const handleInputChange = (field: keyof Transaction, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof UITransaction, value: unknown) => {
+    if (!formData) return;
+    setFormData((prev) => prev && { ...prev, [field]: value });
   };
 
+  // --------------------------------------------
+  // UPDATE FIRESTORE TRANSACTION
+  // --------------------------------------------
   const handleUpdate = async () => {
+    if (!formData) return;
+
     setIsLoading(true);
     setStatusMessage(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await updateTransaction(formData.id, {
+        amount: formData.amount,
+        category: formData.category,
+        type: formData.type,
+        description: formData.description ?? "",
+        date: new Date(transactionDateString),
+      });
 
-    // Placeholder success
-    setStatusMessage({ type: "success", text: "✓ Transaction updated successfully!" });
-    setIsLoading(false);
+      toast({
+        title: "Transaction Updated",
+        description: `Successfully updated ${formData.category} (${formData.type}).`,
+      });
 
-    // Auto-close after success
-    setTimeout(() => {
-      onClose();
-    }, 1500);
+      setStatusMessage({
+        type: "success",
+        text: "✓ Transaction updated successfully!",
+      });
+
+      setTimeout(() => onClose(), 900);
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: "Error",
+        description: "Failed to update transaction.",
+        variant: "destructive",
+      });
+
+      setStatusMessage({
+        type: "error",
+        text: "⚠️ Failed to update transaction.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // --------------------------------------------
+  // DELETE TRANSACTION
+  // --------------------------------------------
   const handleDelete = async () => {
+    if (!formData) return;
+
     setIsLoading(true);
     setStatusMessage(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await deleteTransaction(formData.id);
 
-    // Placeholder success
-    setStatusMessage({ type: "success", text: "✓ Transaction deleted successfully!" });
-    setIsLoading(false);
-    setShowDeleteConfirm(false);
+      toast({
+        title: "Transaction Deleted",
+        description: `${formData.category} has been removed.`,
+      });
 
-    // Auto-close after success
-    setTimeout(() => {
-      onClose();
-    }, 1500);
+      setStatusMessage({
+        type: "success",
+        text: "✓ Transaction deleted successfully!",
+      });
+
+      setShowDeleteConfirm(false);
+      setTimeout(() => onClose(), 900);
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: "Error",
+        description: "Failed to delete transaction.",
+        variant: "destructive",
+      });
+
+      setStatusMessage({
+        type: "error",
+        text: "⚠️ Failed to delete transaction.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (!formData) return null;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* BACKDROP */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -109,32 +191,31 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
 
-          {/* Modal Container */}
+          {/* MODAL */}
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={{ duration: 0.3 }}
               className="w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Content */}
               <div className="glass-card p-6 md:p-8 bg-card/95 backdrop-blur-2xl">
-                {/* Header */}
+                {/* HEADER */}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl md:text-3xl font-semibold gradient-text">
                     Edit Transaction
                   </h2>
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-xl hover:bg-muted/50 transition-all duration-300 group"
+                    className="p-2 rounded-xl hover:bg-muted/50 transition-all"
                   >
-                    <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <X className="w-5 h-5 text-muted-foreground" />
                   </button>
                 </div>
 
-                {/* Status Message */}
+                {/* STATUS MESSAGE */}
                 {statusMessage && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -149,7 +230,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   </motion.div>
                 )}
 
-                {/* Form */}
+                {/* FORM */}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -157,45 +238,33 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   }}
                   className="space-y-6"
                 >
-                  {/* Amount Field */}
+                  {/* AMOUNT */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount" className="text-sm font-medium text-foreground/80">
-                      Amount
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                        $
-                      </span>
-                      <Input
-                        id="amount"
-                        type="number"
-                        value={formData.amount}
-                        onChange={(e) => handleInputChange("amount", parseFloat(e.target.value))}
-                        className="pl-8 h-12 bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
-                        required
-                      />
-                    </div>
+                    <Label htmlFor="amount">Amount</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) =>
+                        handleChange("amount", parseFloat(e.target.value))
+                      }
+                      required
+                    />
                   </div>
 
-                  {/* Category Field */}
+                  {/* CATEGORY */}
                   <div className="space-y-2">
-                    <Label htmlFor="category" className="text-sm font-medium text-foreground/80">
-                      Category
-                    </Label>
+                    <Label>Category</Label>
                     <Select
                       value={formData.category}
-                      onValueChange={(value) => handleInputChange("category", value)}
+                      onValueChange={(value) => handleChange("category", value)}
                     >
-                      <SelectTrigger className="h-12 bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/50">
+                      <SelectContent>
                         {categories.map((cat) => (
-                          <SelectItem
-                            key={cat}
-                            value={cat}
-                            className="focus:bg-primary/10 focus:text-primary cursor-pointer"
-                          >
+                          <SelectItem key={cat} value={cat}>
                             {cat}
                           </SelectItem>
                         ))}
@@ -203,131 +272,82 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     </Select>
                   </div>
 
-                  {/* Type Field */}
+                  {/* TYPE */}
                   <div className="space-y-3">
-                    <Label className="text-sm font-medium text-foreground/80">Type</Label>
+                    <Label>Type</Label>
                     <RadioGroup
                       value={formData.type}
-                      onValueChange={(value) => handleInputChange("type", value as "income" | "expense")}
+                      onValueChange={(v) =>
+                        handleChange("type", v as "income" | "expense")
+                      }
                       className="flex gap-4"
                     >
-                      <div className="flex items-center space-x-2 flex-1">
-                        <div
-                          className={`flex-1 rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 ${
-                            formData.type === "income"
-                              ? "border-accent bg-accent/10 shadow-[0_0_20px_rgba(110,231,183,0.2)]"
-                              : "border-border/50 bg-muted/20 hover:border-border"
-                          }`}
-                          onClick={() => handleInputChange("type", "income")}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="income" id="income" />
-                            <Label
-                              htmlFor="income"
-                              className={`cursor-pointer font-medium ${
-                                formData.type === "income" ? "text-accent" : "text-foreground/70"
-                              }`}
-                            >
-                              💰 Income
-                            </Label>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="income" id="income" />
+                        <Label htmlFor="income">💰 Income</Label>
                       </div>
 
-                      <div className="flex items-center space-x-2 flex-1">
-                        <div
-                          className={`flex-1 rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 ${
-                            formData.type === "expense"
-                              ? "border-destructive bg-destructive/10 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-                              : "border-border/50 bg-muted/20 hover:border-border"
-                          }`}
-                          onClick={() => handleInputChange("type", "expense")}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="expense" id="expense" />
-                            <Label
-                              htmlFor="expense"
-                              className={`cursor-pointer font-medium ${
-                                formData.type === "expense" ? "text-destructive" : "text-foreground/70"
-                              }`}
-                            >
-                              💸 Expense
-                            </Label>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="expense" id="expense" />
+                        <Label htmlFor="expense">💸 Expense</Label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  {/* Date Field */}
+                  {/* DATE */}
                   <div className="space-y-2">
-                    <Label htmlFor="date" className="text-sm font-medium text-foreground/80">
-                      Date
-                    </Label>
+                    <Label>Date</Label>
                     <Input
-                      id="date"
                       type="date"
-                      value={formData.date}
-                      onChange={(e) => handleInputChange("date", e.target.value)}
-                      className="h-12 bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                      value={transactionDateString}
+                      onChange={(e) => setTransactionDateString(e.target.value)}
                       required
                     />
                   </div>
 
-                  {/* Note Field */}
+                  {/* NOTE / DESCRIPTION */}
                   <div className="space-y-2">
-                    <Label htmlFor="note" className="text-sm font-medium text-foreground/80">
-                      Note (Optional)
-                    </Label>
+                    <Label>Note (Optional)</Label>
                     <Textarea
-                      id="note"
-                      value={formData.note}
-                      onChange={(e) => handleInputChange("note", e.target.value)}
+                      value={formData.description ?? ""}
+                      onChange={(e) =>
+                        handleChange("description", e.target.value)
+                      }
                       placeholder="Add a note..."
-                      className="min-h-[100px] bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 resize-none"
                     />
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* BUTTONS */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    {/* Save Button */}
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="flex-1 h-12 bg-gradient-primary hover:opacity-90 text-primary-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] transition-all duration-300"
+                      className="flex-1 h-12 bg-gradient-primary"
                     >
                       {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </>
+                        <Save className="w-4 h-4" />
                       )}
+                      {isLoading ? "Saving..." : "Save Changes"}
                     </Button>
 
-                    {/* Delete Button */}
                     <Button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
                       disabled={isLoading}
                       variant="outline"
-                      className="flex-1 sm:flex-none h-12 border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive rounded-xl transition-all duration-300"
+                      className="flex-1 h-12 border-destructive/50 text-destructive"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
+                      <Trash2 className="w-4 h-4" /> Delete
                     </Button>
 
-                    {/* Cancel Button */}
                     <Button
                       type="button"
                       onClick={onClose}
                       disabled={isLoading}
                       variant="ghost"
-                      className="flex-1 sm:flex-none h-12 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all duration-300"
+                      className="flex-1 h-12"
                     >
                       Cancel
                     </Button>
@@ -337,70 +357,45 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             </motion.div>
           </div>
 
-          {/* Delete Confirmation Modal */}
+          {/* DELETE CONFIRM */}
           <AnimatePresence>
             {showDeleteConfirm && (
-              <>
+              <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
-                  onClick={() => setShowDeleteConfirm(false)}
-                />
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="glass-card p-6 bg-card/95 backdrop-blur-2xl max-w-md w-full text-center"
+                >
+                  <Trash2 className="w-8 h-8 text-destructive mx-auto mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">
+                    Delete Transaction?
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-5">
+                    This action cannot be undone.
+                  </p>
 
-                <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="glass-card p-6 bg-card/95 backdrop-blur-2xl max-w-md w-full"
-                  >
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-                        <Trash2 className="w-8 h-8 text-destructive" />
-                      </div>
+                  <div className="flex gap-3 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
 
-                      <div>
-                        <h3 className="text-xl font-semibold text-foreground mb-2">
-                          Delete Transaction?
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          This action cannot be undone. This will permanently delete the transaction
-                          from your records.
-                        </p>
-                      </div>
-
-                      <div className="flex gap-3 pt-2">
-                        <Button
-                          onClick={() => setShowDeleteConfirm(false)}
-                          variant="outline"
-                          disabled={isLoading}
-                          className="flex-1 h-11"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleDelete}
-                          disabled={isLoading}
-                          className="flex-1 h-11 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              Deleting...
-                            </>
-                          ) : (
-                            "Delete"
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </>
+                    <Button
+                      onClick={handleDelete}
+                      disabled={isLoading}
+                      className="flex-1 bg-destructive text-destructive-foreground"
+                    >
+                      {isLoading ? "Deleting..." : "Delete"}
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </>
