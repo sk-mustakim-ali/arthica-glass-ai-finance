@@ -1,3 +1,4 @@
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,40 +9,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getActiveBudget,
+  getOverspentCategories,
+} from "@/services/queryWrappers";
 
-interface BudgetCategory {
-  id: string;
+interface Category {
   name: string;
-  icon: string;
-  spent: number;
   limit: number;
+  spent: number;
+}
+
+interface BudgetData {
+  totalLimit: number;
+  categories: Category[];
 }
 
 export function BudgetOverview() {
-  const totalLimit = 50000;
-  const totalSpent = 27000;
+  const [budget, setBudget] = useState<BudgetData | null>(null);
+  const [overspent, setOverspent] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        const currentBudget = await getActiveBudget();
+        const overspentCats = await getOverspentCategories();
+        setBudget(currentBudget);
+        setOverspent(overspentCats);
+      } catch (error) {
+        console.error("Error loading budget:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBudget();
+  }, []);
+
+  const totalLimit = useMemo(() => budget?.totalLimit ?? 0, [budget]);
+  const totalSpent = useMemo(
+    () =>
+      budget?.categories.reduce((sum, cat) => sum + (cat.spent || 0), 0) ?? 0,
+    [budget]
+  );
   const remaining = totalLimit - totalSpent;
-  const percentSpent = (totalSpent / totalLimit) * 100;
+  const percentSpent = totalLimit ? (totalSpent / totalLimit) * 100 : 0;
 
-  const categories: BudgetCategory[] = [
-    { id: "food", name: "Food", icon: "🍔", spent: 2500, limit: 5000 },
-    { id: "transport", name: "Transport", icon: "🚗", spent: 8000, limit: 10000 },
-    { id: "entertainment", name: "Entertainment", icon: "🎬", spent: 3000, limit: 5000 },
-    { id: "utilities", name: "Utilities", icon: "💡", spent: 4000, limit: 6000 },
-    { id: "others", name: "Others", icon: "📦", spent: 9500, limit: 24000 },
-  ];
-
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
+  const formatAmount = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
-  const getCategoryProgress = (spent: number, limit: number) => {
-    return (spent / limit) * 100;
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20 text-muted-foreground">
+        Loading your budget...
+      </div>
+    );
+  }
+
+  if (!budget) {
+    return (
+      <div className="flex justify-center items-center py-20 text-muted-foreground">
+        No active budget found for this month.
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -54,23 +89,29 @@ export function BudgetOverview() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">Budget Overview</CardTitle>
-            <Select defaultValue="january">
+            <Select defaultValue={new Date().toLocaleString("default", { month: "long" }).toLowerCase()}>
               <SelectTrigger className="w-[140px] bg-background/50">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="january">January</SelectItem>
-                <SelectItem value="february">February</SelectItem>
-                <SelectItem value="march">March</SelectItem>
-                <SelectItem value="april">April</SelectItem>
-                <SelectItem value="may">May</SelectItem>
-                <SelectItem value="june">June</SelectItem>
-                <SelectItem value="july">July</SelectItem>
-                <SelectItem value="august">August</SelectItem>
-                <SelectItem value="september">September</SelectItem>
-                <SelectItem value="october">October</SelectItem>
-                <SelectItem value="november">November</SelectItem>
-                <SelectItem value="december">December</SelectItem>
+                {[
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ].map((m) => (
+                  <SelectItem key={m.toLowerCase()} value={m.toLowerCase()}>
+                    {m}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -111,13 +152,18 @@ export function BudgetOverview() {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((category, index) => {
-              const progress = getCategoryProgress(category.spent, category.limit);
-              const isOverBudget = category.spent > category.limit;
+            {budget.categories.map((category, index) => {
+              const progress =
+                category.limit > 0
+                  ? (category.spent / category.limit) * 100
+                  : 0;
+              const isOverBudget = overspent.some(
+                (c) => c.name === category.name
+              );
 
               return (
                 <motion.div
-                  key={category.id}
+                  key={category.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 + index * 0.05 }}
@@ -125,7 +171,7 @@ export function BudgetOverview() {
                   className="p-5 rounded-2xl bg-gradient-to-br from-accent/5 to-background border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="text-3xl">{category.icon}</div>
+                    <div className="text-2xl">📊</div>
                     <div className="flex-1">
                       <h3 className="text-base font-semibold text-foreground">
                         {category.name}
