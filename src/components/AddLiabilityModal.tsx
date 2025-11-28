@@ -1,47 +1,88 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus } from "lucide-react";
+// src/components/liabilities/AddLiabilityModal.tsx
+import { motion } from "framer-motion";
+import { PlusCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { addLiability } from "@/services/queryWrappers";
+import { Timestamp } from "firebase/firestore";
 
 interface AddLiabilityModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void; // optional callback to refresh list after add
 }
 
-export function AddLiabilityModal({ isOpen, onClose }: AddLiabilityModalProps) {
+export function AddLiabilityModal({ isOpen, onClose, onSuccess }: AddLiabilityModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     amount: "",
     interestRate: "",
     dueDate: "",
-    status: "active",
+    status: "active" as "active" | "overdue" | "closed",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add functionality to save liability
-    console.log("Adding liability:", formData);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const dueDateValue =
+        formData.dueDate.trim() !== ""
+          ? Timestamp.fromDate(new Date(formData.dueDate))
+          : Timestamp.now();
+
+      // ✅ Use queryWrapper instead of Firestore calls
+      await addLiability({
+        name: formData.name.trim(),
+        amount: parseFloat(formData.amount),
+        interestRate: parseFloat(formData.interestRate),
+        dueDate: dueDateValue,
+        status: formData.status,
+        createdAt: Timestamp.now(),
+      });
+
+      // reset form + refresh parent list
+      setFormData({
+        name: "",
+        amount: "",
+        interestRate: "",
+        dueDate: "",
+        status: "active",
+      });
+
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Error adding liability:", error);
+      alert("Failed to add liability. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="glass-card border-white/20 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold gradient-text">Add New Liability</DialogTitle>
+          <DialogTitle className="text-2xl font-bold gradient-text">
+            Add Liability
+          </DialogTitle>
         </DialogHeader>
 
         <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          onSubmit={handleSubmit}
           className="space-y-5 mt-4"
         >
+          {/* Liability Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Liability Name</Label>
             <Input
@@ -49,41 +90,41 @@ export function AddLiabilityModal({ isOpen, onClose }: AddLiabilityModalProps) {
               placeholder="e.g., Car Loan, EMI"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50"
               required
             />
           </div>
 
+          {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (₹)</Label>
             <Input
               id="amount"
               type="number"
+              min="0"
+              step="0.01"
               placeholder="0"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50"
-              min="0"
-              step="0.01"
               required
             />
           </div>
 
+          {/* Interest Rate */}
           <div className="space-y-2">
             <Label htmlFor="interestRate">Interest Rate (%)</Label>
             <Input
               id="interestRate"
               type="number"
+              min="0"
+              step="0.1"
               placeholder="0"
               value={formData.interestRate}
               onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })}
-              className="bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50"
-              min="0"
-              step="0.1"
               required
             />
           </div>
 
+          {/* Due Date */}
           <div className="space-y-2">
             <Label htmlFor="dueDate">Due Date</Label>
             <Input
@@ -91,41 +132,38 @@ export function AddLiabilityModal({ isOpen, onClose }: AddLiabilityModalProps) {
               type="date"
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              className="bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50"
-              required
             />
           </div>
 
+          {/* Status */}
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger className="bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50">
-                <SelectValue />
+            <Select
+              value={formData.status}
+              onValueChange={(value: "active" | "overdue" | "closed") =>
+                setFormData({ ...formData, status: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent className="bg-background/95 backdrop-blur-md border-white/10">
+              <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
                 <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Liability
-            </Button>
-          </div>
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            {isSubmitting ? "Adding..." : "Add Liability"}
+          </Button>
         </motion.form>
       </DialogContent>
     </Dialog>
