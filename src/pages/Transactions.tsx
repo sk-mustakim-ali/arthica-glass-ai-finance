@@ -20,6 +20,16 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EditTransactionModal } from "@/components/ui/EditTransactionModal";
 
+// Export for use in EditTransactionModal
+export interface UITransaction {
+  id: string;
+  amount: number;
+  category: string;
+  type: "income" | "expense";
+  description?: string;
+  date: Date;
+}
+
 interface Transaction {
   id: string;
   amount: number;
@@ -116,16 +126,16 @@ const Transactions = () => {
     setIsModalOpen(true);
   };
 
-  // Convert Transaction to modal format
-  const getModalTransaction = () => {
+  // Convert Transaction to modal format (UITransaction)
+  const getModalTransaction = (): UITransaction | undefined => {
     if (!selectedTransaction) return undefined;
     return {
       id: selectedTransaction.id,
       amount: selectedTransaction.amount,
       category: selectedTransaction.category,
       type: selectedTransaction.type,
-      note: selectedTransaction.description,
-      date: selectedTransaction.timestamp.toISOString().split('T')[0],
+      description: selectedTransaction.description,
+      date: selectedTransaction.timestamp,
     };
   };
 

@@ -10,20 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { AddLiabilityModal } from "@/components/AddLiabilityModal";
 import { EditLiabilityModal } from "@/components/EditLiabilityModal";
 import { DeleteLiabilityModal } from "@/components/DeleteLiabilityModal";
-
-interface Liability {
-  id: number;
-  name: string;
-  amount: number;
-  interestRate: number;
-  dueDate: string;
-  status: "active" | "overdue" | "closed";
-}
+import { Liability } from "@/services/queryWrappers";
 
 const mockLiabilities: Liability[] = [
-  { id: 1, name: "EMI", amount: 20000, interestRate: 0, dueDate: "2025-11-10", status: "active" },
-  { id: 2, name: "Car Loan", amount: 450000, interestRate: 6.5, dueDate: "2025-11-05", status: "overdue" },
-  { id: 3, name: "Personal Loan", amount: 150000, interestRate: 12.5, dueDate: "2025-11-20", status: "active" },
+  { id: "1", name: "EMI", amount: 20000, interestRate: 0, dueDate: "2025-11-10", status: "active" },
+  { id: "2", name: "Car Loan", amount: 450000, interestRate: 6.5, dueDate: "2025-11-05", status: "overdue" },
+  { id: "3", name: "Personal Loan", amount: 150000, interestRate: 12.5, dueDate: "2025-11-20", status: "active" },
 ];
 
 const Liabilities = () => {
@@ -48,8 +40,16 @@ const Liabilities = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateValue: string | { toDate?: () => Date } | null) => {
+    if (!dateValue) return "N/A";
+    let date: Date;
+    if (typeof dateValue === "string") {
+      date = new Date(dateValue);
+    } else if (dateValue.toDate) {
+      date = dateValue.toDate();
+    } else {
+      return "N/A";
+    }
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
