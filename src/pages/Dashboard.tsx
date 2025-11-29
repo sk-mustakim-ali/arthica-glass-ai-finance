@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/layout/Header";
+import { DashboardSidebar } from "@/components/layout/Sidebar";
 import { FinancialCards } from "@/components/dashboard/FinancialCards";
 import { FinancialCharts } from "@/components/dashboard/FinancialCharts";
 import { BudgetOverview } from "@/components/budget/BudgetOverview";

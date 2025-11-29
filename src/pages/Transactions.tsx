@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardSidebar } from "@/components/layout/Sidebar";
+import { DashboardHeader } from "@/components/layout/Header";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,10 +42,10 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { EditTransactionModal } from "@/components/transactions/EditTransactionModal";
 
-import { parseFile } from "@/utils/parseFile";
-import { normalizeTransactions } from "@/utils/normalize";
-import { uploadTransactions } from "@/utils/uploadToFirestore";
-import type { RawRow } from "@/utils/normalize";
+import { parseFile } from "@/services/utils/parseFile";
+import { normalizeTransactions } from "@/services/utils/normalize";
+import { uploadTransactions } from "@/services/utils/uploadToFirestore";
+import type { RawRow } from "@/services/utils/normalize";
 
 // --------------------------------------------
 // NORMALIZED UI TRANSACTION TYPE

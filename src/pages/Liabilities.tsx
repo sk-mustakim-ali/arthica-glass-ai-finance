@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardSidebar } from "@/components/layout/Sidebar";
+import { DashboardHeader } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, AlertCircle, TrendingDown, Calendar, Percent } from "lucide-react";
