@@ -1,14 +1,27 @@
+// src/pages/Transactions.tsx
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { ArrowUpCircle, ArrowDownCircle, Plus, DollarSign, Tag, FileText, PencilLine } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Plus,
+  DollarSign,
+  Tag,
+  FileText,
+  PencilLine,
+  Upload,
+} from "lucide-react";
+
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { DashboardHeader } from "@/components/DashboardHeader";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+
 import {
   Select,
   SelectContent,
@@ -16,52 +29,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { EditTransactionModal } from "@/components/ui/EditTransactionModal";
 
-// Export for use in EditTransactionModal
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import {
+  addTransaction,
+  listenToTransactions,
+  type ListenerTransaction,
+} from "@/services/queryWrappers";
+
+
+import { useAuth } from "@/hooks/useAuth";
+import { EditTransactionModal } from "@/components/transactions/EditTransactionModal";
+
+import { parseFile } from "@/utils/parseFile";
+import { normalizeTransactions } from "@/utils/normalize";
+import { uploadTransactions } from "@/utils/uploadToFirestore";
+import type { RawRow } from "@/utils/normalize";
+
+// --------------------------------------------
+// NORMALIZED UI TRANSACTION TYPE
+// --------------------------------------------
 export interface UITransaction {
   id: string;
   amount: number;
   category: string;
   type: "income" | "expense";
-  description?: string;
-  date: Date;
-}
-
-interface Transaction {
-  id: string;
-  amount: number;
-  category: string;
-  type: "income" | "expense";
   description: string;
-  timestamp: Date;
+  date: Date;
+  createdAt: Date;
 }
 
 const Transactions = () => {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      amount: 5000,
-      category: "Salary",
-      type: "income",
-      description: "Monthly salary",
-      timestamp: new Date(Date.now() - 86400000),
-    },
-    {
-      id: "2",
-      amount: 1200,
-      category: "Rent",
-      type: "expense",
-      description: "Monthly rent payment",
-      timestamp: new Date(Date.now() - 172800000),
-    },
-  ]);
+  const { user } = useAuth();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [transactions, setTransactions] = useState<UITransaction[]>([]);
 
   const [formData, setFormData] = useState({
     amount: "",
@@ -70,14 +73,62 @@ const Transactions = () => {
     description: "",
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<UITransaction | null>(null);
+
+  // CSV Import State
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [preview, setPreview] = useState<RawRow[]>([]);
+  const [fullData, setFullData] = useState<RawRow[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const categories = {
     income: ["Salary", "Freelance", "Investment", "Business", "Other"],
-    expense: ["Rent", "Food", "Transport", "Entertainment", "Shopping", "Bills", "Other"],
+    expense: [
+      "Rent",
+      "Food",
+      "Transport",
+      "Entertainment",
+      "Shopping",
+      "Bills",
+      "Other",
+    ],
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // --------------------------------------------
+  // 🔄 REALTIME LISTENER
+  // --------------------------------------------
+  useEffect(() => {
+    if (!user) {
+      setTransactions([]);
+      return;
+    }
+
+    const unsubscribe = listenToTransactions((txns: ListenerTransaction[]) => {
+      const normalized: UITransaction[] = txns.map((t) => ({
+        id: t.id,
+        amount: t.amount,
+        category: t.category,
+        type: t.type,
+        description: t.description,
+        date: new Date(t.date),                // wrapper stores YYYY-MM-DD string
+        createdAt: t.createdAt,       // Firestore timestamp → JS Date
+      }));
+
+      setTransactions(normalized);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // --------------------------------------------
+  // ➕ MANUAL ADD TRANSACTION
+  // --------------------------------------------
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.amount || !formData.category) {
       toast({
         title: "Missing fields",
@@ -87,66 +138,156 @@ const Transactions = () => {
       return;
     }
 
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      amount: parseFloat(formData.amount),
-      category: formData.category,
-      type: formData.type,
-      description: formData.description,
-      timestamp: new Date(),
-    };
+    try {
+      await addTransaction({
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        type: formData.type,
+        description: formData.description,
+        date: new Date(), // wrapper converts automatically
+      });
 
-    setTransactions([newTransaction, ...transactions]);
-    
-    toast({
-      title: "Transaction added!",
-      description: `${formData.type === "income" ? "Income" : "Expense"} of $${formData.amount} recorded`,
-    });
+      toast({
+        title: "Transaction added!",
+        description: `${formData.type === "income" ? "Income" : "Expense"} of ₹${
+          formData.amount
+        } recorded.`,
+      });
 
-    setFormData({
-      amount: "",
-      category: "",
-      type: "expense",
-      description: "",
-    });
+      setFormData({
+        amount: "",
+        category: "",
+        type: "expense",
+        description: "",
+      });
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add transaction.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    
-    if (hours < 1) return "Just now";
-    if (hours < 24) return `${hours}h ago`;
-    return date.toLocaleDateString();
+  // --------------------------------------------
+  // 📂 CSV PARSE HANDLER
+  // --------------------------------------------
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const parsed = await parseFile(file);
+      setFullData(parsed);
+      setPreview(parsed.slice(0, 5));
+      setFileName(file.name);
+
+      toast({
+        title: "File loaded",
+        description: `${parsed.length} rows ready to import.`,
+      });
+    } catch {
+      toast({
+        title: "Error parsing file",
+        description: "Please upload a valid CSV or Excel file.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
+  // --------------------------------------------
+  // ⬆️ CSV UPLOAD
+  // --------------------------------------------
+  const handleUpload = async () => {
+    if (!user?.uid) {
+      toast({
+        title: "Not authenticated",
+        description: "You must be signed in to import transactions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!fullData.length) {
+      toast({
+        title: "No data",
+        description: "Please select a valid file first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const normalized = normalizeTransactions(fullData, user.uid);
+      const res = await uploadTransactions(normalized, user.uid);
+
+      toast({
+        title: "Import successful!",
+        description: `${res.uploaded} transactions imported, ${res.invalidCount} invalid.`,
+      });
+
+      setIsImportOpen(false);
+      setFileName("");
+      setPreview([]);
+      setFullData([]);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast({
+        title: "Upload failed",
+        description: error.message || "Could not upload data to Firestore.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --------------------------------------------
+  // ✏️ EDIT MODAL HANDLER
+  // --------------------------------------------
+  const handleEditClick = (txn: UITransaction) => {
+    setSelectedTransaction(txn);
     setIsModalOpen(true);
   };
 
-  // Convert Transaction to modal format (UITransaction)
-  const getModalTransaction = (): UITransaction | undefined => {
+  const getModalTransaction = () => {
     if (!selectedTransaction) return undefined;
+
     return {
       id: selectedTransaction.id,
       amount: selectedTransaction.amount,
       category: selectedTransaction.category,
       type: selectedTransaction.type,
       description: selectedTransaction.description,
-      date: selectedTransaction.timestamp,
+      date: selectedTransaction.date, // return string
+      createdAt: selectedTransaction.createdAt, // wrapper accepts Timestamp.fromDate internally
     };
   };
 
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours}h ago`;
+
+    return date.toLocaleDateString();
+  };
+
+  // --------------------------------------------
+  // PAGE UI
+  // --------------------------------------------
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar />
-        
         <div className="flex-1 flex flex-col">
           <DashboardHeader />
-          
+
           <main className="flex-1 p-6 overflow-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -154,49 +295,58 @@ const Transactions = () => {
               transition={{ duration: 0.5 }}
               className="max-w-7xl mx-auto space-y-6"
             >
-              <div>
-                <h1 className="text-3xl font-bold mb-2 gradient-text">Transactions</h1>
-                <p className="text-muted-foreground">
-                  Track your income and expenses in real-time
-                </p>
+              {/* HEADER */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2 gradient-text">
+                    Transactions
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Track your income and expenses in real-time
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => setIsImportOpen(true)}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                >
+                  <Upload className="w-4 h-4 mr-2" /> Import CSV
+                </Button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Add Transaction Form */}
+                {/* ADD FORM */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="glass-card p-6 rounded-2xl space-y-6"
+                  className="glass-card p-6 rounded-2xl"
                 >
-                  <div>
-                    <h2 className="text-2xl font-semibold gradient-text mb-2">Add Transaction</h2>
-                    <p className="text-sm text-muted-foreground">Record your income or expense</p>
-                  </div>
+                  <h2 className="text-2xl font-semibold gradient-text mb-2">
+                    Add Transaction
+                  </h2>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Type Tabs */}
+                    {/* TYPE */}
                     <div className="space-y-2">
                       <Label>Type</Label>
                       <Tabs
                         value={formData.type}
-                        onValueChange={(value) => setFormData({ ...formData, type: value as "income" | "expense", category: "" })}
-                        className="w-full"
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            type: value as "income" | "expense",
+                            category: "",
+                          })
+                        }
                       >
-                        <TabsList className="grid w-full grid-cols-2 bg-white/5 backdrop-blur-md">
-                          <TabsTrigger value="income" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">
-                            <ArrowUpCircle className="w-4 h-4 mr-2" />
-                            Income
-                          </TabsTrigger>
-                          <TabsTrigger value="expense" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">
-                            <ArrowDownCircle className="w-4 h-4 mr-2" />
-                            Expense
-                          </TabsTrigger>
+                        <TabsList className="grid grid-cols-2">
+                          <TabsTrigger value="income">Income</TabsTrigger>
+                          <TabsTrigger value="expense">Expense</TabsTrigger>
                         </TabsList>
                       </Tabs>
                     </div>
 
-                    {/* Amount */}
+                    {/* AMOUNT */}
                     <div className="space-y-2">
                       <Label htmlFor="amount">Amount</Label>
                       <div className="relative">
@@ -204,87 +354,81 @@ const Transactions = () => {
                         <Input
                           id="amount"
                           type="number"
-                          placeholder="0.00"
                           value={formData.amount}
-                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                          className="pl-10 bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50 transition-all"
-                          step="0.01"
-                          min="0"
+                          onChange={(e) =>
+                            setFormData({ ...formData, amount: e.target.value })
+                          }
+                          className="pl-10"
+                          required
                         />
                       </div>
                     </div>
 
-                    {/* Category */}
+                    {/* CATEGORY */}
                     <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <div className="relative">
-                        <Tag className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
-                        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                          <SelectTrigger className="pl-10 bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background/95 backdrop-blur-md border-white/10">
-                            {categories[formData.type].map((cat) => (
-                              <SelectItem key={cat} value={cat}>
-                                {cat}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      <Label>Category</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, category: v })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories[formData.type].map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {/* Description */}
+                    {/* DESCRIPTION */}
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description (Optional)</Label>
+                      <Label>Description (Optional)</Label>
                       <div className="relative">
                         <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Textarea
-                          id="description"
                           placeholder="Add notes about this transaction..."
                           value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          className="pl-10 bg-white/5 backdrop-blur-md border-white/10 focus:border-primary/50 min-h-[80px] transition-all"
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              description: e.target.value,
+                            })
+                          }
+                          className="pl-10"
                         />
                       </div>
                     </div>
 
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-primary/50 transition-all duration-300"
-                      size="lg"
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Transaction
+                      <Plus className="w-4 h-4 mr-2" /> Add Transaction
                     </Button>
                   </form>
                 </motion.div>
 
-                {/* Recent Transactions Feed */}
+                {/* TRANSACTIONS LIST */}
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
                   className="glass-card p-6 rounded-2xl space-y-4"
                 >
-                  <div>
-                    <h2 className="text-2xl font-semibold gradient-text mb-2">Recent Transactions</h2>
-                    <p className="text-sm text-muted-foreground">Your latest financial activity</p>
-                  </div>
+                  <h2 className="text-2xl font-semibold gradient-text mb-2">
+                    Recent Transactions
+                  </h2>
 
                   <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     {transactions.length === 0 ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-12"
-                      >
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center">
-                          <DollarSign className="w-10 h-10 text-muted-foreground" />
-                        </div>
-                        <p className="text-muted-foreground text-lg">No transactions yet</p>
-                        <p className="text-sm text-muted-foreground/70 mt-2">Start by adding one!</p>
-                      </motion.div>
+                      <div className="text-center py-12 text-muted-foreground">
+                        No transactions yet
+                      </div>
                     ) : (
                       transactions.map((transaction, index) => (
                         <motion.div
@@ -292,64 +436,55 @@ const Transactions = () => {
                           initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          className="glass-card p-4 rounded-2xl border border-white/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+                          className="glass-card p-4 rounded-2xl border border-white/10 flex justify-between items-center hover:border-primary/30"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div
-                                className={`p-2 rounded-xl flex-shrink-0 ${
-                                  transaction.type === "income"
-                                    ? "bg-green-500/20 text-green-400"
-                                    : "bg-red-500/20 text-red-400"
-                                }`}
-                              >
-                                {transaction.type === "income" ? (
-                                  <ArrowUpCircle className="w-5 h-5" />
-                                ) : (
-                                  <ArrowDownCircle className="w-5 h-5" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-foreground">
-                                  {transaction.category}
-                                </h3>
-                                {transaction.description && (
-                                  <p className="text-sm text-muted-foreground truncate">
-                                    {transaction.description}
-                                  </p>
-                                )}
-                                <p className="text-xs text-muted-foreground/70 mt-1">
-                                  {formatDate(transaction.timestamp)}
-                                </p>
-                              </div>
+                          <div className="flex items-center gap-3 flex-1">
+                            <div
+                              className={`p-2 rounded-xl ${
+                                transaction.type === "income"
+                                  ? "bg-green-500/20 text-green-400"
+                                  : "bg-red-500/20 text-red-400"
+                              }`}
+                            >
+                              {transaction.type === "income" ? (
+                                <ArrowUpCircle className="w-5 h-5" />
+                              ) : (
+                                <ArrowDownCircle className="w-5 h-5" />
+                              )}
                             </div>
-                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-                              <p
-                                className={`text-lg font-bold ${
-                                  transaction.type === "income" ? "text-green-400" : "text-red-400"
-                                }`}
-                              >
-                                {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
+
+                            <div>
+                              <h3 className="font-semibold">
+                                {transaction.category}
+                              </h3>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {transaction.description || "—"}
                               </p>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <motion.button
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      onClick={() => handleEditClick(transaction)}
-                                      className="p-2 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 hover:shadow-[0_0_15px_rgba(110,231,183,0.3)] transition-all duration-300 flex-shrink-0"
-                                    >
-                                      <PencilLine className="w-4 h-4" />
-                                    </motion.button>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-popover/95 backdrop-blur-md border-border/50">
-                                    <p>Edit Transaction</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <p className="text-xs text-muted-foreground/70">
+                                {formatDate(transaction.createdAt)}
+                              </p>
                             </div>
+                          </div>
+
+                          <div className="text-right">
+                            <p
+                              className={`text-lg font-bold ${
+                                transaction.type === "income"
+                                  ? "text-green-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {transaction.type === "income" ? "+" : "-"}₹
+                              {transaction.amount.toLocaleString()}
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleEditClick(transaction)}
+                              className="mt-2 border-primary/30 hover:bg-primary/10"
+                            >
+                              <PencilLine className="w-4 h-4" />
+                            </Button>
                           </div>
                         </motion.div>
                       ))
@@ -357,20 +492,66 @@ const Transactions = () => {
                   </div>
                 </motion.div>
               </div>
+
+              {/* CSV IMPORT MODAL */}
+              {isImportOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4"
+                  >
+                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-blue-500" /> Import
+                      Transactions
+                    </h2>
+
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx"
+                      onChange={handleFileChange}
+                      className="w-full text-sm"
+                    />
+
+                    {fileName && (
+                      <p className="text-xs text-gray-500">Selected: {fileName}</p>
+                    )}
+
+                    {preview.length > 0 && (
+                      <pre className="bg-gray-100 rounded-lg p-2 text-xs max-h-40 overflow-auto">
+                        {JSON.stringify(preview, null, 2)}
+                      </pre>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsImportOpen(false)}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleUpload} disabled={loading}>
+                        {loading ? "Uploading..." : "Upload"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+
+              {/* EDIT TRANSACTION MODAL */}
+              <EditTransactionModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                  setIsModalOpen(false);
+                  setSelectedTransaction(null);
+                }}
+                transaction={getModalTransaction()}
+              />
             </motion.div>
           </main>
         </div>
       </div>
-
-      {/* Edit Transaction Modal */}
-      <EditTransactionModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedTransaction(null);
-        }}
-        transaction={getModalTransaction()}
-      />
     </SidebarProvider>
   );
 };

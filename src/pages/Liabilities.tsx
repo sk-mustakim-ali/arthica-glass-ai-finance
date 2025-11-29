@@ -1,35 +1,50 @@
+// src/pages/Liabilities.tsx
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { DashboardHeader } from "@/components/DashboardHeader";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, AlertCircle, TrendingDown, Calendar, Percent } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AddLiabilityModal } from "@/components/AddLiabilityModal";
-import { EditLiabilityModal } from "@/components/EditLiabilityModal";
-import { DeleteLiabilityModal } from "@/components/DeleteLiabilityModal";
-import { Liability } from "@/services/queryWrappers";
-
-const mockLiabilities: Liability[] = [
-  { id: "1", name: "EMI", amount: 20000, interestRate: 0, dueDate: "2025-11-10", status: "active" },
-  { id: "2", name: "Car Loan", amount: 450000, interestRate: 6.5, dueDate: "2025-11-05", status: "overdue" },
-  { id: "3", name: "Personal Loan", amount: 150000, interestRate: 12.5, dueDate: "2025-11-20", status: "active" },
-];
+import { AddLiabilityModal } from "@/components/liabilities/AddLiabilityModal";
+import { EditLiabilityModal } from "@/components/liabilities/EditLiabilityModal";
+import { DeleteLiabilityModal } from "@/components/liabilities/DeleteLiabilityModal";
+import { Timestamp } from "firebase/firestore";
+import { getAllLiabilities , Liability } from "@/services/queryWrappers";
 
 const Liabilities = () => {
-  const [liabilities, setLiabilities] = useState<Liability[]>(mockLiabilities);
+  const [liabilities, setLiabilities] = useState<Liability[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedLiability, setSelectedLiability] = useState<Liability | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalLiabilities = liabilities.reduce((sum, liability) => sum + liability.amount, 0);
+  // 🔹 Centralized data fetch
+  const fetchLiabilities = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getAllLiabilities();
+      setLiabilities(data || []);
+    } catch (error) {
+      console.error("Error fetching liabilities:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiabilities();
+  }, [fetchLiabilities]);
+
+  // 🔹 Derived values
+  const totalLiabilities = liabilities.reduce((sum, l) => sum + (l.amount || 0), 0);
   const activeCount = liabilities.filter((l) => l.status === "active").length;
   const overdueCount = liabilities.filter((l) => l.status === "overdue").length;
 
+  // 🔹 Handlers
   const handleEdit = (liability: Liability) => {
     setSelectedLiability(liability);
     setIsEditModalOpen(true);
@@ -40,36 +55,29 @@ const Liabilities = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const formatDate = (dateValue: string | { toDate?: () => Date } | null) => {
-    if (!dateValue) return "N/A";
-    let date: Date;
-    if (typeof dateValue === "string") {
-      date = new Date(dateValue);
-    } else if (dateValue.toDate) {
-      date = dateValue.toDate();
-    } else {
-      return "N/A";
+  // 🔹 Date formatting helper
+  const formatDate = (date: string | Timestamp | null | undefined): string => {
+    if (!date) return "—";
+    try {
+      const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+      return new Intl.DateTimeFormat("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(jsDate);
+    } catch {
+      return "—";
     }
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
+  // 🔹 Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
 
   return (
@@ -121,7 +129,9 @@ const Liabilities = () => {
                       <TrendingDown className="h-5 w-5 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold">₹{totalLiabilities.toLocaleString()}</div>
+                      <div className="text-3xl font-bold">
+                        ₹{totalLiabilities.toLocaleString()}
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -231,7 +241,8 @@ const Liabilities = () => {
                                     : "default"
                                 }
                               >
-                                {liability.status.charAt(0).toUpperCase() + liability.status.slice(1)}
+                                {liability.status.charAt(0).toUpperCase() +
+                                  liability.status.slice(1)}
                               </Badge>
                             </div>
                           </div>
@@ -239,19 +250,25 @@ const Liabilities = () => {
                         <CardContent className="space-y-4">
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Amount</p>
-                            <p className="text-2xl font-bold">₹{liability.amount.toLocaleString()}</p>
+                            <p className="text-2xl font-bold">
+                              ₹{liability.amount?.toLocaleString()}
+                            </p>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm">
                             <Percent className="h-4 w-4 text-muted-foreground" />
                             <span className="text-muted-foreground">Interest Rate:</span>
-                            <span className="font-semibold">{liability.interestRate}%</span>
+                            <span className="font-semibold">
+                              {liability.interestRate ?? 0}%
+                            </span>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span className="text-muted-foreground">Due Date:</span>
-                            <span className="font-semibold">{formatDate(liability.dueDate)}</span>
+                            <span className="font-semibold">
+                              {formatDate(liability.dueDate)}
+                            </span>
                           </div>
 
                           <div className="flex gap-2 pt-2">
@@ -286,7 +303,11 @@ const Liabilities = () => {
       </div>
 
       {/* Modals */}
-      <AddLiabilityModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddLiabilityModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchLiabilities}
+      />
       <EditLiabilityModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -294,6 +315,7 @@ const Liabilities = () => {
           setSelectedLiability(null);
         }}
         liability={selectedLiability}
+        onSuccess={fetchLiabilities}
       />
       <DeleteLiabilityModal
         isOpen={isDeleteModalOpen}
@@ -302,6 +324,7 @@ const Liabilities = () => {
           setSelectedLiability(null);
         }}
         liability={selectedLiability}
+        onSuccess={fetchLiabilities}
       />
     </SidebarProvider>
   );

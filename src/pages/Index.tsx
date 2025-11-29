@@ -1,11 +1,48 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
 import arthicaLogo from "@/assets/arthica-logo.png";
 
+import { getAuth, signOut, signInAnonymously } from "firebase/auth";
+
 const Index = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleTryDemo = async () => {
+    try {
+      setLoading(true);
+      const auth = getAuth();
+
+      // 1️⃣  Sign out any current user so demo is isolated
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+
+      // 2️⃣  Trigger backend seeder for demoUser
+      const res = await fetch("http://localhost:5001/seed-demo");
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Seeder failed");
+
+      // 3️⃣  Sign in anonymously (temporary demo session)
+      await signInAnonymously(auth);
+
+      // 4️⃣  Flag demo mode
+      localStorage.setItem("arthica-demo-mode", "true");
+
+      alert("✅ Demo data ready! Redirecting to dashboard…");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error in Try Demo:", err);
+      alert("⚠️ Unable to start demo. Check console for details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const features = [
     {
       icon: Brain,
@@ -96,6 +133,8 @@ const Index = () => {
               Harness the power of AI and blockchain to transform how you manage your finances.
               Budget smarter, save more, and achieve your financial goals with confidence.
             </p>
+
+            {/* CTA Buttons */}
             <div className="flex items-center justify-center gap-4">
               <Link to="/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8">
@@ -103,8 +142,14 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="glass-button text-lg px-8">
-                Watch Demo
+              <Button
+                size="lg"
+                variant="outline"
+                className="glass-button text-lg px-8"
+                onClick={handleTryDemo}
+                disabled={loading}
+              >
+                {loading ? "Seeding Demo..." : "🚀 Try Demo"}
               </Button>
             </div>
           </motion.div>
