@@ -153,3 +153,13 @@ All colors MUST be HSL.
     background: hsl(var(--primary) / 0.5);
   }
 }
+
+/* Hide scrollbar when using .scrollbar-none */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
