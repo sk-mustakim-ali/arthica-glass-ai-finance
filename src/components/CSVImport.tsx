@@ -1,9 +1,9 @@
 // src/components/CSVImport.tsx
 import React, { useState } from "react";
 import { Upload } from "lucide-react";
-import { parseFile } from "@/utils/parseFile";
-import { normalizeTransactions, RawRow } from "@/utils/normalize";
-import { uploadTransactions } from "@/utils/uploadToFirestore";
+import { parseFile } from "@/services/utils/parseFile";
+import { normalizeTransactions, RawRow } from "@/services/utils/normalize";
+import { uploadTransactions } from "@/services/utils/uploadToFirestore";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
