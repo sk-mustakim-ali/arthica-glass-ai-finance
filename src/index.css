@@ -106,6 +106,15 @@ All colors MUST be HSL.
     --sidebar-border: 220 20% 18%;
     --sidebar-ring: 210 100% 55%;
   }
+
+  /* Hero gradient pages need light text */
+  .bg-gradient-hero {
+    color: hsl(0 0% 100%);
+  }
+  
+  .bg-gradient-hero .text-muted-foreground {
+    color: hsl(0 0% 100% / 0.7);
+  }
 }
 
 @layer base {
