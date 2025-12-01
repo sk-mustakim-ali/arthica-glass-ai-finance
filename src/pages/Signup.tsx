@@ -5,13 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import arthicaLogo from "@/assets/arthica-logo.png";
-
-// 🔥 Firebase imports
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { auth, db, googleProvider } from "@/services/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -22,10 +17,8 @@ const Signup = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signup } = useAuth();
 
-  // -------------------------------------------------------
-  // ✨ Email + Password Signup
-  // -------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -40,108 +33,16 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      // Create user in Firebase Auth
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = cred.user;
-      const uid = user.uid;
-
-      // Refresh token to ensure Firestore has auth context
-      await user.getIdToken(true);
-
-      // Create user document in Firestore
-      const userDocPayload = {
-        email,
-        name,
-        role: "personal",
-        createdAt: serverTimestamp(),
-        healthScore: 0,
-        budgetRef: null,
-      };
-
-      await setDoc(doc(db, "users", uid), userDocPayload);
-
+      await signup(email, password, name);
       toast({
         title: "Account created!",
-        description: "Please complete your onboarding to set up your profile.",
+        description: "Welcome to Arthica!",
       });
-
-      navigate("/onboarding");
-    } catch (err: unknown) {
-      console.error("🔥 Signup error:", err);
-      let message = "Signup failed. Please try again.";
-
-      // ✅ Safe type narrowing for Firebase errors
-      if (err instanceof FirebaseError) {
-        switch (err.code) {
-          case "permission-denied":
-            message = "Permission denied. Check your Firestore rules.";
-            break;
-          case "auth/email-already-in-use":
-            message = "This email is already registered.";
-            break;
-          case "auth/invalid-email":
-            message = "Please enter a valid email address.";
-            break;
-          case "auth/weak-password":
-            message = "Password is too weak.";
-            break;
-          default:
-            message = err.message;
-        }
-      }
-
+      navigate("/dashboard");
+    } catch {
       toast({
         title: "Signup Error",
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // -------------------------------------------------------
-  // ✨ Google Signup (No password)
-  // -------------------------------------------------------
-  const handleGoogleSignup = async () => {
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      // Create or merge Firestore user doc
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          email: user.email,
-          name: user.displayName,
-          role: "personal",
-          provider: "google",
-          photo: user.photoURL,
-          createdAt: serverTimestamp(),
-          healthScore: 0,
-          budgetRef: null,
-        },
-        { merge: true }
-      );
-
-      toast({
-        title: "Signed up with Google!",
-        description: "Welcome to Arthica.",
-      });
-
-      navigate("/onboarding");
-    } catch (err: unknown) {
-      console.error("🔥 Google signup error:", err);
-      let message = "Failed to sign up with Google.";
-
-      if (err instanceof FirebaseError && err.code === "auth/popup-closed-by-user") {
-        message = "Sign-up cancelled. Please try again.";
-      }
-
-      toast({
-        title: "Google Sign-up Error",
-        description: message,
+        description: "Signup failed. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -163,15 +64,14 @@ const Signup = () => {
               <img src={arthicaLogo} alt="Arthica" className="h-12" />
               <h1 className="text-3xl font-bold gradient-text">Arthica</h1>
             </Link>
-            <p className="text-muted-foreground">
+            <p className="text-white/70">
               Create your account and start your journey
             </p>
           </div>
 
-          {/* 🔐 Email Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-white">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -179,12 +79,12 @@ const Signup = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-white">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -192,12 +92,12 @@ const Signup = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-white">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -205,12 +105,12 @@ const Signup = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -218,7 +118,7 @@ const Signup = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
@@ -231,25 +131,8 @@ const Signup = () => {
             </Button>
           </form>
 
-          {/* ✨ Google Signup Button */}
-          <div className="mt-4">
-            <Button
-              onClick={handleGoogleSignup}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-3 border border-gray-700 hover:bg-gray-800 transition"
-              disabled={loading}
-            >
-              <img
-                src="https://www.svgrepo.com/show/355037/google.svg"
-                alt="Google"
-                className="w-5 h-5"
-              />
-              Continue with Google
-            </Button>
-          </div>
-
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">
+            <span className="text-white/70">
               Already have an account?{" "}
             </span>
             <Link

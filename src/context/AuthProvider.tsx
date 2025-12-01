@@ -1,70 +1,63 @@
-import React, { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { auth } from "../services/firebase";
-import { AuthContext } from "./AuthContext";
+import React, { useState, useEffect } from "react";
+import { AuthContext, DemoUser } from "./AuthContext";
+
+const DEMO_USER: DemoUser = {
+  id: "demo-user-1",
+  uid: "demo-user-1",
+  displayName: "Demo User",
+  email: "demo@arthica.app",
+};
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<DemoUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // Check for stored session on mount
   useEffect(() => {
-    try {
-      const unsub = onAuthStateChanged(
-        auth,
-        (u) => {
-          setUser(u);
-          setLoading(false);
-        },
-        (err) => {
-          console.error("Firebase auth error:", err);
-          setError(err.message);
-          setLoading(false);
-        }
-      );
-      return () => unsub();
-    } catch (err) {
-      console.error("Firebase initialization error:", err);
-      setError(err instanceof Error ? err.message : "Unknown error");
-      setLoading(false);
+    const storedUser = localStorage.getItem("arthica-user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
   }, []);
 
-  const logout = async () => await signOut(auth);
+  const login = async (email: string, password: string) => {
+    // Demo login - accepts any credentials
+    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+    
+    const loggedInUser: DemoUser = {
+      id: "user-" + Date.now(),
+      uid: "user-" + Date.now(),
+      displayName: email.split("@")[0],
+      email,
+    };
+    
+    setUser(loggedInUser);
+    localStorage.setItem("arthica-user", JSON.stringify(loggedInUser));
+  };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const signup = async (email: string, password: string, name: string) => {
+    // Demo signup
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    
+    const newUser: DemoUser = {
+      id: "user-" + Date.now(),
+      uid: "user-" + Date.now(),
+      displayName: name || email.split("@")[0],
+      email,
+    };
+    
+    setUser(newUser);
+    localStorage.setItem("arthica-user", JSON.stringify(newUser));
+  };
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center max-w-md p-6">
-          <div className="text-destructive text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold mb-2">Connection Error</h2>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const logout = async () => {
+    setUser(null);
+    localStorage.removeItem("arthica-user");
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

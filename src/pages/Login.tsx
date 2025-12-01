@@ -5,14 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import arthicaLogo from "@/assets/arthica-logo.png";
-import { loginUser } from "@/services/authService";
-
-// 🔥 Firebase imports for Google Login
-import { signInWithPopup } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { auth, googleProvider, db } from "@/services/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,36 +14,23 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
-  // -------------------------------------------------------
-  // ✨ Normal email + password login
-  // -------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      await loginUser(email, password);
+      await login(email, password);
       toast({
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
       navigate("/dashboard");
-    } catch (err: unknown) {
-      console.error("🔥 Login error:", err);
-      let errorMessage = "Login failed. Please check your credentials.";
-
-      if (err instanceof FirebaseError) {
-        if (err.code === "auth/user-not-found")
-          errorMessage = "No account found with that email.";
-        else if (err.code === "auth/wrong-password")
-          errorMessage = "Incorrect password.";
-        else if (err.code === "auth/invalid-email")
-          errorMessage = "Please enter a valid email.";
-      }
-
+    } catch {
       toast({
         title: "Login Error",
-        description: errorMessage,
+        description: "Login failed. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -57,47 +38,15 @@ const Login = () => {
     }
   };
 
-  // -------------------------------------------------------
-  // ✨ Google Login (no password)
-  // -------------------------------------------------------
-  const handleGoogleLogin = async () => {
+  const handleDemoLogin = async () => {
     setLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      // Optional: Create or update Firestore user document
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          name: user.displayName,
-          email: user.email,
-          photo: user.photoURL,
-          provider: "google",
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true }
-      );
-
+      await login("demo@arthica.app", "demo123");
       toast({
-        title: "Welcome back!",
-        description: "Signed in with Google successfully.",
+        title: "Demo Mode",
+        description: "Logged in with demo account!",
       });
-
       navigate("/dashboard");
-    } catch (err: unknown) {
-      console.error("🔥 Google login error:", err);
-      let message = "Failed to sign in with Google.";
-
-      if (err instanceof FirebaseError && err.code === "auth/popup-closed-by-user") {
-        message = "Sign-in cancelled. Please try again.";
-      }
-
-      toast({
-        title: "Google Login Error",
-        description: message,
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -117,15 +66,14 @@ const Login = () => {
               <img src={arthicaLogo} alt="Arthica" className="h-12" />
               <h1 className="text-3xl font-bold gradient-text">Arthica</h1>
             </Link>
-            <p className="text-muted-foreground">
+            <p className="text-white/70">
               Welcome back! Please login to your account
             </p>
           </div>
 
-          {/* Email + Password Login */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-white">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -133,13 +81,13 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-white">Password</Label>
                 <a href="#" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </a>
@@ -151,7 +99,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="glass-button"
+                className="glass-button text-white placeholder:text-white/50"
               />
             </div>
 
@@ -164,25 +112,19 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* ✨ Google Login Button */}
           <div className="mt-4">
             <Button
-              onClick={handleGoogleLogin}
+              onClick={handleDemoLogin}
               variant="outline"
-              className="w-full flex items-center justify-center gap-3 border border-gray-700 hover:bg-gray-800 transition"
+              className="w-full glass-button text-white border-white/20"
               disabled={loading}
             >
-              <img
-                src="https://www.svgrepo.com/show/355037/google.svg"
-                alt="Google"
-                className="w-5 h-5"
-              />
-              Sign in with Google
+              🚀 Try Demo Account
             </Button>
           </div>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
+            <span className="text-white/70">Don't have an account? </span>
             <Link
               to="/signup"
               className="text-primary hover:underline font-semibold"
