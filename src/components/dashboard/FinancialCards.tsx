@@ -1,82 +1,20 @@
-// src/components/dashboard/FinancialCards.tsx
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Wallet, Activity } from "lucide-react";
 import {
   getTransactionTotals,
-  getUserHealthScore,
-  getActiveBudget,
-  getUserProfile,
-} from "@/services/queryWrappers";
-
-// ---------------- Interfaces ----------------
-interface Totals {
-  totalIncome: number;
-  totalExpense: number;
-  cashBalance: number;
-}
-
-interface ExtendedUserProfile {
-  desiredSavings?: number;
-}
+  demoUser,
+  demoBudget,
+} from "@/services/mockData";
 
 export function FinancialCards() {
-  // ---------------- State ----------------
-  const [totals, setTotals] = useState<Totals>({
-    totalIncome: 0,
-    totalExpense: 0,
-    cashBalance: 0,
-  });
-  const [healthScore, setHealthScore] = useState<number | null>(null);
-  const [savings, setSavings] = useState<number>(0);
-  const [timeline, setTimeline] = useState<"weekly" | "monthly" | "yearly">(
-    "monthly"
-  );
-  const [loading, setLoading] = useState(true);
+  const totals = getTransactionTotals();
+  const healthScore = demoUser.healthScore;
+  const savings = demoUser.desiredSavings;
+  const timeline = demoBudget.timeline;
 
   const fmt = (v: number) =>
     `₹${v.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
-  // ---------------- Fetch Data (via Wrappers) ----------------
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [totalsData, score, activeBudget, profile] = await Promise.all([
-          getTransactionTotals(),
-          getUserHealthScore(),
-          getActiveBudget(),
-          getUserProfile(),
-        ]);
-
-        // ✅ Set main data
-        setTotals(totalsData);
-        setHealthScore(score);
-        setTimeline(activeBudget?.timeline ?? "monthly");
-
-        // ✅ Safely extract savings from profile
-        const extendedProfile = profile as ExtendedUserProfile | null;
-        const desiredSavings = extendedProfile?.desiredSavings ?? 0;
-        setSavings(Number(desiredSavings));
-      } catch (error) {
-        console.error("Error loading financial cards:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // ---------------- Loading State ----------------
-  if (loading) {
-    return (
-      <p className="text-center text-muted-foreground py-4">
-        Loading dashboard data...
-      </p>
-    );
-  }
-
-  // ---------------- Computed Values ----------------
   const totalBalance = Math.max(totals.cashBalance + (savings || 0), 0);
 
   const cards = [
@@ -103,14 +41,13 @@ export function FinancialCards() {
     },
     {
       title: "Financial Health",
-      value: healthScore !== null ? `${healthScore}/100` : "N/A",
+      value: `${healthScore}/100`,
       change: fmt(savings),
-      isPositive: (healthScore ?? 0) >= 70,
+      isPositive: healthScore >= 70,
       icon: Activity,
     },
   ];
 
-  // ---------------- Render ----------------
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {cards.map((card, index) => (
