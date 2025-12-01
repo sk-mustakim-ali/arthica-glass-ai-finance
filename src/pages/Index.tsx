@@ -1,48 +1,11 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
 import arthicaLogo from "@/assets/arthica-logo.png";
 
-import { getAuth, signOut, signInAnonymously } from "firebase/auth";
-
 const Index = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  const handleTryDemo = async () => {
-    try {
-      setLoading(true);
-      const auth = getAuth();
-
-      // 1️⃣  Sign out any current user so demo is isolated
-      if (auth.currentUser) {
-        await signOut(auth);
-      }
-
-      // 2️⃣  Trigger backend seeder for demoUser
-      const res = await fetch("http://localhost:5001/seed-demo");
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Seeder failed");
-
-      // 3️⃣  Sign in anonymously (temporary demo session)
-      await signInAnonymously(auth);
-
-      // 4️⃣  Flag demo mode
-      localStorage.setItem("arthica-demo-mode", "true");
-
-      alert("✅ Demo data ready! Redirecting to dashboard…");
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Error in Try Demo:", err);
-      alert("⚠️ Unable to start demo. Check console for details.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const features = [
     {
       icon: Brain,
@@ -77,24 +40,18 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-hero text-white">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass-card">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
-            >
-              <Link to="/" className="flex items-center gap-3">
-                <img src={arthicaLogo} alt="Arthica" className="h-8" />
-                <span className="text-2xl font-bold gradient-text">Arthica</span>
-              </Link>
-            </motion.div>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={arthicaLogo} alt="Arthica" className="h-8" />
+              <span className="text-2xl font-bold gradient-text">Arthica</span>
+            </Link>
             <div className="flex items-center gap-4">
               <Link to="/login">
-                <Button variant="ghost" className="glass-button">
+                <Button variant="ghost" className="glass-button text-white">
                   Login
                 </Button>
               </Link>
@@ -113,10 +70,10 @@ const Index = () => {
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
-            alt="Financial technology visualization"
+            alt="Financial technology"
             className="w-full h-full object-cover opacity-30"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/80" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -126,15 +83,13 @@ const Index = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h2 className="text-6xl font-bold mb-6 gradient-text">
+            <h1 className="text-6xl font-bold mb-6 gradient-text">
               Smarter Money.<br />Transparent Future.
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            </h1>
+            <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
               Harness the power of AI and blockchain to transform how you manage your finances.
-              Budget smarter, save more, and achieve your financial goals with confidence.
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex items-center justify-center gap-4">
               <Link to="/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8">
@@ -142,15 +97,11 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                className="glass-button text-lg px-8"
-                onClick={handleTryDemo}
-                disabled={loading}
-              >
-                {loading ? "Seeding Demo..." : "🚀 Try Demo"}
-              </Button>
+              <Link to="/login">
+                <Button size="lg" variant="outline" className="glass-button text-white text-lg px-8">
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -159,18 +110,12 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-20 relative">
         <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h3 className="text-4xl font-bold mb-4">Powerful Features</h3>
-            <p className="text-xl text-muted-foreground">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-white">Powerful Features</h2>
+            <p className="text-xl text-white/70">
               Everything you need to take control of your financial future
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -183,81 +128,18 @@ const Index = () => {
                 className="glass-card p-8 hover:scale-105 transition-transform duration-300"
               >
                 <feature.icon className="h-12 w-12 text-primary mb-4" />
-                <h4 className="text-xl font-semibold mb-2">{feature.title}</h4>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
+                <p className="text-white/70">{feature.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="glass-card p-12 text-center"
-          >
-            <h3 className="text-4xl font-bold mb-4 gradient-text">
-              Ready to Transform Your Financial Future?
-            </h3>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of users who are already managing their money smarter with Arthica
-            </p>
-            <Link to="/signup">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8">
-                Get Started Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="py-12 border-t border-white/10">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <img src={arthicaLogo} alt="Arthica" className="h-10" />
-                <h4 className="text-xl font-bold gradient-text">Arthica</h4>
-              </div>
-              <p className="text-muted-foreground">
-                AI-powered financial platform for smarter money management
-              </p>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Product</h5>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Company</h5>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Legal</h5>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-white/10 text-center text-muted-foreground">
-            <p>© 2025 Arthica. All rights reserved.</p>
-          </div>
+        <div className="container mx-auto px-6 text-center text-white/70">
+          <p>© 2025 Arthica. All rights reserved.</p>
         </div>
       </footer>
     </div>
