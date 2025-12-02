@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock } from "lucide-react";
+import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
 import arthicaLogo from "@/assets/arthica-logo.png";
