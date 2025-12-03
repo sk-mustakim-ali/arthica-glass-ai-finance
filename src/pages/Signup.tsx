@@ -36,9 +36,10 @@ const Signup = () => {
       await signup(email, password, name);
       toast({
         title: "Account created!",
-        description: "Welcome to Arthica!",
+        description: "Let's set up your profile.",
       });
-      navigate("/dashboard");
+      // New users go to onboarding
+      navigate("/onboarding");
     } catch {
       toast({
         title: "Signup Error",

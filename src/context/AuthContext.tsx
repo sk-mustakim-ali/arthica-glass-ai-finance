@@ -5,6 +5,9 @@ export interface DemoUser {
   uid: string;
   displayName: string;
   email: string;
+  accountType?: "personal" | "business";
+  companyId?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface AuthContextType {
@@ -13,6 +16,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (data: Partial<DemoUser>) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -21,4 +25,5 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: async () => {},
+  updateUser: () => {},
 });
