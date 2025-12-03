@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -43,57 +44,99 @@ import { ConfigurationSettingsPage } from "./modules/business/pages/settings/Con
 
 const queryClient = new QueryClient();
 
+// Protected Route wrapper
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If user hasn't completed onboarding, redirect to onboarding
+  if (!user.onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+// Smart dashboard router based on account type
+function DashboardRouter() {
+  const { user } = useAuth();
+  
+  if (user?.accountType === "business" && user.companyId) {
+    return <Navigate to={`/business/dashboard/${user.companyId}`} replace />;
+  }
+  
+  return <Dashboard />;
+}
+
+const AppRoutes = () => (
+  <Routes>
+    {/* Public routes */}
+    <Route path="/" element={<Index />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/signup" element={<Signup />} />
+    <Route path="/onboarding" element={<Onboarding />} />
+
+    {/* Protected Personal Dashboard routes */}
+    <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
+    <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+    <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
+    <Route path="/liabilities" element={<ProtectedRoute><Liabilities /></ProtectedRoute>} />
+
+    {/* Business Module routes */}
+    <Route path="/business/create" element={<ProtectedRoute><CreateCompanyPage /></ProtectedRoute>} />
+    <Route path="/business/dashboard/:companyId" element={<ProtectedRoute><BusinessDashboardLayout /></ProtectedRoute>}>
+      <Route index element={<DashboardHome />} />
+      <Route path="transactions/sales" element={<SalesList />} />
+      <Route path="transactions/sales/create" element={<SalesCreate />} />
+      <Route path="transactions/purchases" element={<PurchasesList />} />
+      <Route path="transactions/purchases/create" element={<PurchasesCreate />} />
+      <Route path="transactions/receipts" element={<ReceiptsList />} />
+      <Route path="transactions/receipts/create" element={<ReceiptsCreate />} />
+      <Route path="transactions/payments" element={<PaymentsList />} />
+      <Route path="transactions/payments/create" element={<PaymentsCreate />} />
+      <Route path="transactions/journals" element={<JournalsList />} />
+      <Route path="transactions/journals/create" element={<JournalsCreate />} />
+      <Route path="transactions/returns" element={<ReturnsList />} />
+      <Route path="transactions/returns/create" element={<ReturnsCreate />} />
+      <Route path="masters/accounts" element={<AccountsPage />} />
+      <Route path="masters/tax-categories" element={<TaxCategoriesPage />} />
+      <Route path="masters/customers-vendors" element={<CustomersVendorsPage />} />
+      <Route path="budgets-alerts" element={<BudgetsAlertsPage />} />
+      <Route path="reports/trial-balance" element={<TrialBalancePage />} />
+      <Route path="reports/ledger" element={<LedgerPage />} />
+      <Route path="reports/pnl" element={<ProfitLossPage />} />
+      <Route path="reports/outstanding" element={<OutstandingPage />} />
+      <Route path="reports/gst-summary" element={<GSTSummaryPage />} />
+      <Route path="settings/company" element={<CompanySettingsPage />} />
+      <Route path="settings/users" element={<UsersSettingsPage />} />
+      <Route path="settings/configuration" element={<ConfigurationSettingsPage />} />
+    </Route>
+
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/budget" element={<Budget />} />
-            <Route path="/liabilities" element={<Liabilities />} />
-            
-            {/* Business Dashboard Routes */}
-            <Route path="/business/create" element={<CreateCompanyPage />} />
-            <Route path="/business/dashboard/:companyId" element={<BusinessDashboardLayout />}>
-              <Route index element={<DashboardHome />} />
-              <Route path="transactions/sales" element={<SalesList />} />
-              <Route path="transactions/sales/create" element={<SalesCreate />} />
-              <Route path="transactions/purchases" element={<PurchasesList />} />
-              <Route path="transactions/purchases/create" element={<PurchasesCreate />} />
-              <Route path="transactions/receipts" element={<ReceiptsList />} />
-              <Route path="transactions/receipts/create" element={<ReceiptsCreate />} />
-              <Route path="transactions/payments" element={<PaymentsList />} />
-              <Route path="transactions/payments/create" element={<PaymentsCreate />} />
-              <Route path="transactions/journals" element={<JournalsList />} />
-              <Route path="transactions/journals/create" element={<JournalsCreate />} />
-              <Route path="transactions/returns" element={<ReturnsList />} />
-              <Route path="transactions/returns/create" element={<ReturnsCreate />} />
-              <Route path="masters/accounts" element={<AccountsPage />} />
-              <Route path="masters/tax-categories" element={<TaxCategoriesPage />} />
-              <Route path="masters/customers-vendors" element={<CustomersVendorsPage />} />
-              <Route path="budgets-alerts" element={<BudgetsAlertsPage />} />
-              <Route path="reports/trial-balance" element={<TrialBalancePage />} />
-              <Route path="reports/ledger" element={<LedgerPage />} />
-              <Route path="reports/pnl" element={<ProfitLossPage />} />
-              <Route path="reports/outstanding" element={<OutstandingPage />} />
-              <Route path="reports/gst-summary" element={<GSTSummaryPage />} />
-              <Route path="settings/company" element={<CompanySettingsPage />} />
-              <Route path="settings/users" element={<UsersSettingsPage />} />
-              <Route path="settings/configuration" element={<ConfigurationSettingsPage />} />
-            </Route>
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );

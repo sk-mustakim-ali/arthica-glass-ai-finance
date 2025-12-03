@@ -26,6 +26,7 @@ const Login = () => {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
+      // Smart redirect - protected route will handle onboarding check
       navigate("/dashboard");
     } catch {
       toast({
@@ -46,6 +47,7 @@ const Login = () => {
         title: "Demo Mode",
         description: "Logged in with demo account!",
       });
+      // Smart redirect - protected route will handle onboarding check
       navigate("/dashboard");
     } finally {
       setLoading(false);

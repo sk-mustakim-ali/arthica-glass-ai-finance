@@ -1,26 +1,67 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import OnboardingFlow, { OnboardingData } from "@/components/onboarding/OnboardingFlow";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { createCompanyAndInit } from "@/modules/business/services/companyService";
 
-const Onboarding = () => {
+const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateUser } = useAuth();
 
-  const handleComplete = () => {
-    toast({ title: "Welcome to Arthica!", description: "Your profile is ready." });
-    navigate("/dashboard");
+  const handleOnboardingComplete = async (data: OnboardingData) => {
+    try {
+      if (data.accountType === "business") {
+        // Create company using business module service
+        const { companyId } = await createCompanyAndInit({
+          name: data.companyName || "My Company",
+          gstNumber: data.gstin,
+          address: data.address,
+          financialYearStart: data.fyBeginning || "april",
+          currency: "INR",
+          timezone: "Asia/Kolkata",
+        });
+
+        // Update user with company info
+        updateUser({
+          accountType: "business",
+          companyId,
+          onboardingCompleted: true,
+        });
+
+        toast({ title: "Company created!", description: "Redirecting to business dashboard." });
+        navigate(`/business/dashboard/${companyId}`, { replace: true });
+        return;
+      }
+
+      // Personal flow
+      updateUser({
+        accountType: "personal",
+        onboardingCompleted: true,
+      });
+
+      // Store personal preferences in localStorage (demo)
+      localStorage.setItem("arthica-personal-profile", JSON.stringify({
+        fullName: data.fullName,
+        occupation: data.occupation,
+        monthlyIncome: data.monthlyIncome,
+        financialGoal: data.financialGoal,
+        desiredSavings: data.desiredSavings,
+        expenseCategories: data.expenseCategories,
+        categoryAmounts: data.categoryAmounts,
+      }));
+
+      toast({ title: "Welcome to Arthica!", description: "Your personal dashboard is ready." });
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      console.error("Onboarding error:", err);
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast({ title: "Failed to complete onboarding", description: message, variant: "destructive" });
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-6">
-      <div className="glass-card p-8 max-w-md text-center">
-        <h1 className="text-3xl font-bold gradient-text mb-4">Welcome!</h1>
-        <p className="text-white/70 mb-6">Your demo account is ready with sample data.</p>
-        <button onClick={handleComplete} className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary/90">
-          Go to Dashboard
-        </button>
-      </div>
-    </div>
-  );
+  return <OnboardingFlow onComplete={handleOnboardingComplete} />;
 };
 
-export default Onboarding;
+export default OnboardingPage;
