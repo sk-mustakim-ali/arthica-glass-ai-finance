@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
     --background: 220 25% 97%;
@@ -56,6 +52,17 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 220 15% 15%;
     --sidebar-border: 220 20% 92%;
     --sidebar-ring: 210 100% 50%;
+
+    /* Student Mode Colors - Gen-Z Theme */
+    --student-primary: 280 85% 60%;
+    --student-accent: 180 85% 55%;
+    --student-success: 145 70% 50%;
+    --student-warning: 35 95% 55%;
+    --student-error: 0 85% 60%;
+    --student-sidebar: 260 30% 98%;
+    --student-sidebar-dark: 260 25% 95%;
+    --student-border: 260 20% 90%;
+    --student-muted: 260 20% 96%;
   }
 
   .dark {
@@ -105,9 +112,19 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 220 15% 95%;
     --sidebar-border: 220 20% 18%;
     --sidebar-ring: 210 100% 55%;
+
+    /* Student Mode Dark */
+    --student-primary: 280 85% 65%;
+    --student-accent: 180 85% 60%;
+    --student-success: 145 70% 55%;
+    --student-warning: 35 95% 60%;
+    --student-error: 0 85% 65%;
+    --student-sidebar: 260 20% 12%;
+    --student-sidebar-dark: 260 20% 10%;
+    --student-border: 260 20% 20%;
+    --student-muted: 260 20% 18%;
   }
 
-  /* Hero gradient pages need light text */
   .bg-gradient-hero {
     color: hsl(0 0% 100%);
   }
@@ -163,12 +180,11 @@ All colors MUST be HSL.
   }
 }
 
-/* Hide scrollbar when using .scrollbar-none */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
 .scrollbar-none {
-  -ms-overflow-style: none; /* IE & Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
