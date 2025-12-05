@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Palette, User, Bell, Shield, Award } from 'lucide-react';
+import { Palette, User, Bell, Shield, Award, Moon, Sun } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useStudentProfile } from '../hooks/useStudent';
 import { BadgeDisplay } from '../components/BadgeDisplay';
 import { ThemeStyle } from '../types/student';
+import { useTheme } from 'next-themes';
 
 const themes: { id: ThemeStyle; name: string; colors: string[] }[] = [
   { id: 'neon', name: 'Neon', colors: ['#FF6B6B', '#4ECDC4', '#FFE66D'] },
@@ -18,6 +19,7 @@ const themes: { id: ThemeStyle; name: string; colors: string[] }[] = [
 
 export const SettingsPage: React.FC = () => {
   const { profile } = useStudentProfile();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -43,28 +45,53 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Themes */}
+      {/* Dark Mode Toggle */}
       <Card className="p-6 border-student-border">
         <div className="flex items-center gap-4 mb-6">
           <Palette className="w-5 h-5 text-student-primary" />
-          <h3 className="font-semibold">Themes</h3>
+          <h3 className="font-semibold">Appearance</h3>
         </div>
+        
+        {/* Light/Dark Toggle */}
+        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 mb-6">
+          <div className="flex items-center gap-3">
+            {theme === 'dark' ? (
+              <Moon className="w-5 h-5 text-student-primary" />
+            ) : (
+              <Sun className="w-5 h-5 text-student-warning" />
+            )}
+            <div>
+              <p className="font-medium">Dark Mode</p>
+              <p className="text-sm text-muted-foreground">
+                {theme === 'dark' ? 'Currently using dark theme' : 'Currently using light theme'}
+              </p>
+            </div>
+          </div>
+          <Switch 
+            checked={theme === 'dark'} 
+            onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+          />
+        </div>
+
+        {/* Color Themes (Visual only for now) */}
+        <p className="text-sm text-muted-foreground mb-4">Color Themes (Coming Soon)</p>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {themes.map((theme) => (
+          {themes.map((t) => (
             <motion.button
-              key={theme.id}
+              key={t.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`p-4 rounded-xl border-2 transition-all ${
-                profile?.theme === theme.id ? 'border-student-primary' : 'border-transparent bg-muted'
+                t.id === 'dark' && theme === 'dark' ? 'border-student-primary' : 'border-transparent bg-muted'
               }`}
+              onClick={() => t.id === 'dark' && setTheme('dark')}
             >
               <div className="flex gap-1 mb-2">
-                {theme.colors.map((color, i) => (
+                {t.colors.map((color, i) => (
                   <div key={i} className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
                 ))}
               </div>
-              <p className="text-sm font-medium">{theme.name}</p>
+              <p className="text-sm font-medium">{t.name}</p>
             </motion.button>
           ))}
         </div>
