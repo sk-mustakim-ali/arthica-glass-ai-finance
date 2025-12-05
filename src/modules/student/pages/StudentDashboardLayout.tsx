@@ -8,14 +8,12 @@ export const StudentDashboardLayout: React.FC = () => {
   const [showAddExpense, setShowAddExpense] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background flex w-full">
+    <div className="min-h-screen bg-background flex flex-col w-full">
       <StudentSidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <StudentHeader />
-        <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <Outlet />
-        </main>
-      </div>
+      <StudentHeader />
+      <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <Outlet />
+      </main>
       <FloatingAddButton onClick={() => setShowAddExpense(true)} />
       <QuickAddExpense open={showAddExpense} onOpenChange={setShowAddExpense} />
     </div>
