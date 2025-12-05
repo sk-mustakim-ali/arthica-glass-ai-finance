@@ -5,7 +5,7 @@ export interface DemoUser {
   uid: string;
   displayName: string;
   email: string;
-  accountType?: "personal" | "business";
+  accountType?: "personal" | "business" | "student";
   companyId?: string;
   onboardingCompleted?: boolean;
 }

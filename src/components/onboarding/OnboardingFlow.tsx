@@ -7,12 +7,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Check, Building2, User, Briefcase, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Building2, User, Briefcase, Loader2, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import arthicaLogo from "@/assets/arthica-logo.png";
 
 export interface OnboardingData {
-  accountType?: "personal" | "business";
+  accountType?: "personal" | "business" | "student";
   // Personal fields
   fullName: string;
   dateOfBirth: string;
@@ -142,6 +142,19 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       return true;
     }
 
+    // Student validation - just need name and pocket money
+    if (currentStep === 1 && data.accountType === "student") {
+      if (!data.fullName.trim()) {
+        toast({ title: "Please enter your name", variant: "destructive" });
+        return false;
+      }
+      if (!data.monthlyIncome) {
+        toast({ title: "Please select your pocket money range", variant: "destructive" });
+        return false;
+      }
+      return true;
+    }
+
     if (currentStep === 2) {
       if (!data.financialGoal) {
         toast({ title: "Please select your main financial goal", variant: "destructive" });
@@ -172,6 +185,20 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
     // Business flow: Complete immediately after step 1
     if (currentStep === 1 && data.accountType === "business") {
+      setLoading(true);
+      try {
+        await onComplete(data);
+      } catch (err) {
+        console.error(err);
+        toast({ title: "Failed to complete onboarding", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Student flow: Complete immediately after step 1
+    if (currentStep === 1 && data.accountType === "student") {
       setLoading(true);
       try {
         await onComplete(data);
@@ -253,7 +280,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
                 </div>
 
                 {/* Account Type Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card
                     className={`p-6 cursor-pointer transition-all hover:border-primary/50 ${
                       data.accountType === "personal" ? "border-primary bg-primary/10" : "border-border"
@@ -265,7 +292,22 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
                         <User className={`h-6 w-6 ${data.accountType === "personal" ? "text-primary-foreground" : "text-muted-foreground"}`} />
                       </div>
                       <h3 className="font-semibold text-foreground">Personal</h3>
-                      <p className="text-sm text-muted-foreground">Track personal expenses, budgets, and financial goals</p>
+                      <p className="text-sm text-muted-foreground">Track personal expenses and financial goals</p>
+                    </div>
+                  </Card>
+
+                  <Card
+                    className={`p-6 cursor-pointer transition-all hover:border-student-primary/50 ${
+                      data.accountType === "student" ? "border-student-primary bg-student-primary/10" : "border-border"
+                    }`}
+                    onClick={() => updateData("accountType", "student")}
+                  >
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className={`p-3 rounded-full ${data.accountType === "student" ? "bg-student-primary" : "bg-secondary"}`}>
+                        <GraduationCap className={`h-6 w-6 ${data.accountType === "student" ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                      </div>
+                      <h3 className="font-semibold text-foreground">Student</h3>
+                      <p className="text-sm text-muted-foreground">Fun, gamified finance tracking for students 🎮</p>
                     </div>
                   </Card>
 
@@ -280,7 +322,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
                         <Building2 className={`h-6 w-6 ${data.accountType === "business" ? "text-primary-foreground" : "text-muted-foreground"}`} />
                       </div>
                       <h3 className="font-semibold text-foreground">Business</h3>
-                      <p className="text-sm text-muted-foreground">Manage company finances, invoices, and reports</p>
+                      <p className="text-sm text-muted-foreground">Manage company finances and reports</p>
                     </div>
                   </Card>
                 </div>
@@ -330,6 +372,45 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
                           <SelectItem value="25000-50000">₹25,000 – ₹50,000</SelectItem>
                           <SelectItem value="50000-100000">₹50,000 – ₹1,00,000</SelectItem>
                           <SelectItem value="above-100000">Above ₹1,00,000</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Student Fields */}
+                {data.accountType === "student" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-4 pt-4 border-t border-student-border"
+                  >
+                    <div className="p-3 rounded-lg bg-student-primary/10 border border-student-primary/20">
+                      <p className="text-sm text-center">🎮 Welcome to Student Mode! Track spending, earn badges, and compete with friends!</p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="fullName">Your Name *</Label>
+                      <Input
+                        id="fullName"
+                        value={data.fullName}
+                        onChange={(e) => updateData("fullName", e.target.value)}
+                        placeholder="What should we call you?"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="monthlyIncome">Monthly Pocket Money *</Label>
+                      <Select value={data.monthlyIncome} onValueChange={(v) => updateData("monthlyIncome", v)}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select pocket money range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="below-5000">Below ₹5,000</SelectItem>
+                          <SelectItem value="5000-10000">₹5,000 – ₹10,000</SelectItem>
+                          <SelectItem value="10000-20000">₹10,000 – ₹20,000</SelectItem>
+                          <SelectItem value="above-20000">Above ₹20,000</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

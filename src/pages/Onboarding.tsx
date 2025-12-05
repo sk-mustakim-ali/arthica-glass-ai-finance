@@ -35,6 +35,24 @@ const OnboardingPage: React.FC = () => {
         return;
       }
 
+      // Student flow
+      if (data.accountType === "student") {
+        updateUser({
+          accountType: "student",
+          onboardingCompleted: true,
+        });
+
+        // Store student profile in localStorage (demo)
+        localStorage.setItem("arthica-student-profile", JSON.stringify({
+          displayName: data.fullName,
+          pocketMoney: data.monthlyIncome,
+        }));
+
+        toast({ title: "Welcome to Student Mode! 🎓", description: "Start tracking and earning points!" });
+        navigate("/student/dashboard", { replace: true });
+        return;
+      }
+
       // Personal flow
       updateUser({
         accountType: "personal",
