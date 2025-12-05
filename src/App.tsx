@@ -42,6 +42,18 @@ import { CompanySettingsPage } from "./modules/business/pages/settings/CompanySe
 import { UsersSettingsPage } from "./modules/business/pages/settings/UsersSettings";
 import { ConfigurationSettingsPage } from "./modules/business/pages/settings/ConfigurationSettings";
 
+// Student Module imports
+import { StudentDashboardLayout } from "./modules/student/pages/StudentDashboardLayout";
+import { StudentDashboardHome } from "./modules/student/pages/StudentDashboardHome";
+import { TransactionsPage as StudentTransactions } from "./modules/student/pages/TransactionsPage";
+import { BudgetsPage as StudentBudgets } from "./modules/student/pages/BudgetsPage";
+import { GoalsPage as StudentGoals } from "./modules/student/pages/GoalsPage";
+import { InsightsPage as StudentInsights } from "./modules/student/pages/InsightsPage";
+import { ChallengesPage as StudentChallenges } from "./modules/student/pages/ChallengesPage";
+import { SubscriptionsPage as StudentSubscriptions } from "./modules/student/pages/SubscriptionsPage";
+import { AICoachPage as StudentAICoach } from "./modules/student/pages/AICoachPage";
+import { SettingsPage as StudentSettings } from "./modules/student/pages/SettingsPage";
+
 const queryClient = new QueryClient();
 
 // Protected Route wrapper
@@ -74,6 +86,10 @@ function DashboardRouter() {
   
   if (user?.accountType === "business" && user.companyId) {
     return <Navigate to={`/business/dashboard/${user.companyId}`} replace />;
+  }
+  
+  if (user?.accountType === "student") {
+    return <Navigate to="/student/dashboard" replace />;
   }
   
   return <Dashboard />;
@@ -121,6 +137,19 @@ const AppRoutes = () => (
       <Route path="settings/company" element={<CompanySettingsPage />} />
       <Route path="settings/users" element={<UsersSettingsPage />} />
       <Route path="settings/configuration" element={<ConfigurationSettingsPage />} />
+    </Route>
+
+    {/* Student Module routes */}
+    <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboardLayout /></ProtectedRoute>}>
+      <Route index element={<StudentDashboardHome />} />
+      <Route path="transactions" element={<StudentTransactions />} />
+      <Route path="budgets" element={<StudentBudgets />} />
+      <Route path="goals" element={<StudentGoals />} />
+      <Route path="insights" element={<StudentInsights />} />
+      <Route path="challenges" element={<StudentChallenges />} />
+      <Route path="subscriptions" element={<StudentSubscriptions />} />
+      <Route path="ai-coach" element={<StudentAICoach />} />
+      <Route path="settings" element={<StudentSettings />} />
     </Route>
 
     <Route path="*" element={<NotFound />} />
