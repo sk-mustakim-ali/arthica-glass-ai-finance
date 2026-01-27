@@ -45,20 +45,20 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-hero text-white">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass-card">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <img src={arthicaLogo} alt="Arthica" className="h-8" />
-              <span className="text-2xl font-bold gradient-text">Arthica</span>
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <img src={arthicaLogo} alt="Arthica" className="h-6 sm:h-8" />
+              <span className="text-lg sm:text-2xl font-bold gradient-text">Arthica</span>
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link to="/login">
-                <Button variant="ghost" className="glass-button text-white">
+                <Button variant="ghost" size="sm" className="glass-button text-white text-xs sm:text-sm px-2 sm:px-4">
                   Login
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4">
                   Get Started
                 </Button>
               </Link>
@@ -179,30 +179,30 @@ const Index = () => {
       </section>
 
       {/* CTA Footer */}
-      <section className="py-20 px-6">
+      <section className="py-12 sm:py-20 px-4 sm:px-6">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="glass-card p-12 text-center"
+            className="glass-card p-6 sm:p-12 text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to take control of your finances?
             </h2>
-            <p className="text-xl text-white/70 mb-8">
+            <p className="text-base sm:text-xl text-white/70 mb-6 sm:mb-8">
               Join thousands of students building smarter money habits
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 h-14">
+            <div className="flex flex-col items-center justify-center gap-3 sm:gap-4">
+              <Link to="/signup" className="w-full sm:w-auto">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-sm sm:text-lg px-6 sm:px-8 h-12 sm:h-14 w-full sm:w-auto">
                   Start Using Arthica
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
-              <Link to="/about">
-                <Button size="lg" variant="ghost" className="glass-button text-white text-lg px-8 h-14">
+              <Link to="/about" className="w-full sm:w-auto">
+                <Button size="lg" variant="ghost" className="glass-button text-white text-sm sm:text-lg px-6 sm:px-8 h-12 sm:h-14 w-full sm:w-auto">
                   About Us
                 </Button>
               </Link>
