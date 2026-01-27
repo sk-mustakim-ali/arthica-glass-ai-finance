@@ -161,6 +161,15 @@
     @apply relative before:absolute before:inset-0 before:rounded-2xl before:p-[2px] before:bg-gradient-to-r before:from-primary before:via-accent before:to-secondary before:-z-10;
   }
 
+  /* Safe area support for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
