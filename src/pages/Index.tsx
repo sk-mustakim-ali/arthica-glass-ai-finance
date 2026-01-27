@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, TrendingUp, Brain, Target, IndianRupee, FileSpreadsheet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import arthicaLogo from "@/assets/arthica-logo.png";
 
 const Index = () => {
@@ -43,21 +42,25 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-hero text-white">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <nav className="fixed top-0 w-full z-50 glass-card">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
               <img src={arthicaLogo} alt="Arthica" className="h-8" />
-              <span className="text-2xl font-bold text-foreground">Arthica</span>
+              <span className="text-2xl font-bold gradient-text">Arthica</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link to="/login">
-                <Button variant="ghost">Login</Button>
+                <Button variant="ghost" className="glass-button text-white">
+                  Login
+                </Button>
               </Link>
               <Link to="/signup">
-                <Button>Get Started</Button>
+                <Button className="bg-primary hover:bg-primary/90">
+                  Get Started
+                </Button>
               </Link>
             </div>
           </div>
@@ -72,15 +75,15 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               AI that turns financial confusion into{" "}
-              <span className="text-primary">clarity</span>
+              <span className="gradient-text">clarity</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
               Your personal AI companion for understanding money, building smart habits, and making confident financial decisions.
             </p>
             <Link to="/signup">
-              <Button size="lg" className="text-lg px-8 h-14">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 h-14">
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -90,7 +93,7 @@ const Index = () => {
       </section>
 
       {/* What Arthica Does */}
-      <section className="py-20 px-6 bg-muted/30">
+      <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -99,10 +102,10 @@ const Index = () => {
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               What Arthica Does
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-white/70">
               Simple steps to take control of your finances
             </p>
           </motion.div>
@@ -115,20 +118,17 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="glass-card p-8 text-center hover:scale-105 transition-transform duration-300"
               >
-                <Card className="h-full hover:shadow-lg transition-shadow duration-300 border-border/50">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <feature.icon className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-2xl font-semibold text-foreground mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <feature.icon className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-semibold text-white mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-white/70">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -145,10 +145,10 @@ const Index = () => {
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Why Arthica?
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-white/70">
               Built different, built better
             </p>
           </motion.div>
@@ -161,15 +161,15 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex flex-col items-center text-center"
+                className="glass-card p-6 text-center"
               >
-                <div className="w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center mb-4">
+                <div className="w-14 h-14 bg-secondary/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <reason.icon className="h-7 w-7 text-secondary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   {reason.title}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-white/70">
                   {reason.description}
                 </p>
               </motion.div>
@@ -179,29 +179,30 @@ const Index = () => {
       </section>
 
       {/* CTA Footer */}
-      <section className="py-20 px-6 bg-primary">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section className="py-20 px-6">
+        <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
+            className="glass-card p-12 text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to take control of your finances?
             </h2>
-            <p className="text-xl text-primary-foreground/80 mb-8">
+            <p className="text-xl text-white/70 mb-8">
               Join thousands of students building smarter money habits
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/signup">
-                <Button size="lg" variant="secondary" className="text-lg px-8 h-14 bg-white text-primary hover:bg-white/90">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 h-14">
                   Start Using Arthica
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/about">
-                <Button size="lg" variant="ghost" className="text-lg px-8 h-14 text-primary-foreground hover:bg-primary-foreground/10">
+                <Button size="lg" variant="ghost" className="glass-button text-white text-lg px-8 h-14">
                   About Us
                 </Button>
               </Link>
@@ -211,17 +212,17 @@ const Index = () => {
       </section>
 
       {/* Simple Footer */}
-      <footer className="py-8 px-6 border-t border-border">
+      <footer className="py-8 px-6 border-t border-white/10">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <img src={arthicaLogo} alt="Arthica" className="h-6" />
-            <span className="font-semibold text-foreground">Arthica</span>
+            <span className="font-semibold text-white">Arthica</span>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/70">
             © 2025 Arthica. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a href="mailto:arthicaai@gmail.com" className="hover:text-foreground transition-colors">
+          <div className="flex items-center gap-4 text-sm text-white/70">
+            <a href="mailto:arthicaai@gmail.com" className="hover:text-white transition-colors">
               arthicaai@gmail.com
             </a>
           </div>
