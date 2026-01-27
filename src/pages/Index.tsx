@@ -1,64 +1,63 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Brain, Shield, TrendingUp, Zap, Globe, Lock, Building2 } from "lucide-react";
+import { ArrowRight, TrendingUp, Brain, Target, IndianRupee, FileSpreadsheet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-bg.jpg";
+import { Card, CardContent } from "@/components/ui/card";
 import arthicaLogo from "@/assets/arthica-logo.png";
 
 const Index = () => {
   const features = [
     {
-      icon: Brain,
-      title: "AI-Powered Insights",
-      description: "Get personalized financial advice powered by advanced AI algorithms",
-    },
-    {
-      icon: Shield,
-      title: "Blockchain Security",
-      description: "Your financial data protected with blockchain-backed transparency",
-    },
-    {
       icon: TrendingUp,
-      title: "Smart Budgeting",
-      description: "Automated expense tracking and intelligent budget recommendations",
+      title: "Track",
+      description: "See exactly where your money goes with smart expense categorization",
     },
     {
-      icon: Zap,
-      title: "Real-time Analytics",
-      description: "Monitor your financial health with live insights and reports",
+      icon: Brain,
+      title: "Understand",
+      description: "Get AI-powered insights that explain your spending patterns in plain language",
     },
     {
-      icon: Globe,
-      title: "Multi-currency Support",
-      description: "Manage finances across multiple currencies effortlessly",
+      icon: Target,
+      title: "Act",
+      description: "Make confident financial decisions with personalized recommendations",
+    },
+  ];
+
+  const reasons = [
+    {
+      icon: IndianRupee,
+      title: "Built for India",
+      description: "Designed specifically for Indian students managing stipends, internships, and daily expenses",
     },
     {
-      icon: Lock,
-      title: "Bank-level Encryption",
-      description: "Enterprise-grade security keeping your data safe 24/7",
+      icon: FileSpreadsheet,
+      title: "Works with Your Data",
+      description: "Import from Tally, Excel, or simply add manually — no complicated setup",
+    },
+    {
+      icon: Sparkles,
+      title: "AI-Powered Insights",
+      description: "Turn financial confusion into clarity with intelligent, personalized guidance",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-hero text-white">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass-card">
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
               <img src={arthicaLogo} alt="Arthica" className="h-8" />
-              <span className="text-2xl font-bold gradient-text">Arthica</span>
+              <span className="text-2xl font-bold text-foreground">Arthica</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link to="/login">
-                <Button variant="ghost" className="glass-button text-white">
-                  Login
-                </Button>
+                <Button variant="ghost">Login</Button>
               </Link>
               <Link to="/signup">
-                <Button className="bg-primary hover:bg-primary/90">
-                  Get Started
-                </Button>
+                <Button>Get Started</Button>
               </Link>
             </div>
           </div>
@@ -66,58 +65,49 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Financial technology"
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/80" />
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10">
+      <section className="pt-32 pb-20 px-6">
+        <div className="container mx-auto max-w-4xl text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-6xl font-bold mb-6 gradient-text">
-              Smarter Money.<br />Transparent Future.
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+              AI that turns financial confusion into{" "}
+              <span className="text-primary">clarity</span>
             </h1>
-            <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-              Harness the power of AI and blockchain to transform how you manage your finances.
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Your personal AI companion for understanding money, building smart habits, and making confident financial decisions.
             </p>
-
-            <div className="flex items-center justify-center gap-4">
-              <Link to="/signup">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" variant="outline" className="glass-button text-white text-lg px-8">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
+            <Link to="/signup">
+              <Button size="lg" className="text-lg px-8 h-14">
+                Start Your Journey
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-white">Powerful Features</h2>
-            <p className="text-xl text-white/70">
-              Everything you need to take control of your financial future
+      {/* What Arthica Does */}
+      <section className="py-20 px-6 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              What Arthica Does
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Simple steps to take control of your finances
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -125,21 +115,116 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="glass-card p-8 hover:scale-105 transition-transform duration-300"
               >
-                <feature.icon className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-white/70">{feature.description}</p>
+                <Card className="h-full hover:shadow-lg transition-shadow duration-300 border-border/50">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <feature.icon className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-semibold text-foreground mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-white/10">
-        <div className="container mx-auto px-6 text-center text-white/70">
-          <p>© 2025 Arthica. All rights reserved.</p>
+      {/* Why Arthica */}
+      <section className="py-20 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Why Arthica?
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Built different, built better
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {reasons.map((reason, index) => (
+              <motion.div
+                key={reason.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="flex flex-col items-center text-center"
+              >
+                <div className="w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center mb-4">
+                  <reason.icon className="h-7 w-7 text-secondary" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  {reason.title}
+                </h3>
+                <p className="text-muted-foreground">
+                  {reason.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Footer */}
+      <section className="py-20 px-6 bg-primary">
+        <div className="container mx-auto max-w-4xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+              Ready to take control of your finances?
+            </h2>
+            <p className="text-xl text-primary-foreground/80 mb-8">
+              Join thousands of students building smarter money habits
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/signup">
+                <Button size="lg" variant="secondary" className="text-lg px-8 h-14 bg-white text-primary hover:bg-white/90">
+                  Start Using Arthica
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/about">
+                <Button size="lg" variant="ghost" className="text-lg px-8 h-14 text-primary-foreground hover:bg-primary-foreground/10">
+                  About Us
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Simple Footer */}
+      <footer className="py-8 px-6 border-t border-border">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <img src={arthicaLogo} alt="Arthica" className="h-6" />
+            <span className="font-semibold text-foreground">Arthica</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            © 2025 Arthica. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <a href="mailto:arthicaai@gmail.com" className="hover:text-foreground transition-colors">
+              arthicaai@gmail.com
+            </a>
+          </div>
         </div>
       </footer>
     </div>
