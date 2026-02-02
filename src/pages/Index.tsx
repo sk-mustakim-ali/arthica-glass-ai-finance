@@ -3,8 +3,17 @@ import { Link } from "react-router-dom";
 import { ArrowRight, TrendingUp, Brain, Target, IndianRupee, FileSpreadsheet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import arthicaLogo from "@/assets/arthica-logo.png";
+import { useIsMobile } from "@/hooks/use-mobile";
+import LandingCarousel from "@/components/landing/LandingCarousel";
 
 const Index = () => {
+  const isMobile = useIsMobile();
+
+  // Render swipeable carousel for mobile
+  if (isMobile) {
+    return <LandingCarousel />;
+  }
+
   const features = [
     {
       icon: TrendingUp,
