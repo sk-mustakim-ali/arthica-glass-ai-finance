@@ -54,6 +54,7 @@ import { ChallengesPage as StudentChallenges } from "./modules/student/pages/Cha
 import { SubscriptionsPage as StudentSubscriptions } from "./modules/student/pages/SubscriptionsPage";
 import { AICoachPage as StudentAICoach } from "./modules/student/pages/AICoachPage";
 import { SettingsPage as StudentSettings } from "./modules/student/pages/SettingsPage";
+import { CapacitorBackHandler } from "./components/CapacitorBackHandler";
 
 const queryClient = new QueryClient();
 
@@ -163,6 +164,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
+            <CapacitorBackHandler />
             <Toaster />
             <Sonner />
             <AppRoutes />

@@ -67,27 +67,39 @@ const LandingCarousel = () => {
             <CarouselContent className="h-full">
               {/* Slide 1: Hero */}
               <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-center px-6 py-8">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center"
-                  >
-                    <h1 className="text-3xl font-bold mb-4 leading-tight">
-                      AI that turns financial confusion into{" "}
-                      <span className="gradient-text">clarity</span>
-                    </h1>
-                    <p className="text-base text-white/70 mb-6">
-                      Your personal AI companion for understanding money and making confident decisions.
-                    </p>
-                    <Link to="/signup">
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-12 w-full">
+                <div className="h-full flex flex-col justify-between px-6 py-8">
+                  <div className="flex-1 flex flex-col justify-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="text-center"
+                    >
+                      <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <img src={arthicaLogo} alt="Arthica" className="h-12" />
+                      </div>
+                      <h1 className="text-4xl font-bold mb-6 leading-tight">
+                        AI that turns financial confusion into{" "}
+                        <span className="gradient-text">clarity</span>
+                      </h1>
+                      <p className="text-lg text-white/70 mb-8 max-w-sm mx-auto">
+                        Your personal AI companion for understanding money and making confident decisions.
+                      </p>
+                    </motion.div>
+                  </div>
+                  <div className="space-y-3">
+                    <Link to="/signup" className="block">
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-14 w-full">
                         Start Your Journey
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
-                  </motion.div>
+                    <Link to="/login" className="block">
+                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-14 w-full">
+                        I already have an account
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </CarouselItem>
 
@@ -135,39 +147,54 @@ const LandingCarousel = () => {
 
               {/* Slide 4: CTA */}
               <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-center px-6 py-8">
-                  <div className="glass-card p-6 text-center">
-                    <h2 className="text-2xl font-bold text-white mb-3">
-                      Ready to take control?
-                    </h2>
-                    <p className="text-sm text-white/70 mb-6">
-                      Join thousands of students building smarter money habits
-                    </p>
-                    <div className="space-y-3">
-                      <Link to="/signup" className="block">
-                        <Button size="default" className="bg-primary hover:bg-primary/90 text-sm px-5 h-11 w-full">
-                          Start Using Arthica
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Link to="/about" className="block">
-                        <Button size="default" variant="ghost" className="glass-button text-white text-sm px-5 h-11 w-full">
-                          About Us
-                        </Button>
-                      </Link>
+                <div className="h-full flex flex-col justify-between px-6 py-8">
+                  <div className="flex-1 flex flex-col justify-center">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Sparkles className="h-8 w-8 text-primary" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-white mb-4">
+                        Ready to take control of your finances?
+                      </h2>
+                      <p className="text-base text-white/70 max-w-sm mx-auto">
+                        Join thousands of students building smarter money habits with AI-powered insights
+                      </p>
+                    </div>
+                    
+                    <div className="glass-card p-5 mb-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                          <Target className="h-6 w-6 text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold">85% of students</p>
+                          <p className="text-sm text-white/70">found Arthica helpful in managing finances</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
+                  <div className="space-y-3">
+                    <Link to="/signup" className="block">
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-14 w-full">
+                        Start Using Arthica
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                    <Link to="/about" className="block">
+                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-14 w-full">
+                        About Us
+                      </Button>
+                    </Link>
+                  </div>
+                  
                   {/* Footer */}
-                  <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <img src={arthicaLogo} alt="Arthica" className="h-5" />
-                      <span className="font-semibold text-white text-sm">Arthica</span>
+                  <div className="mt-6 pt-4 border-t border-white/10 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <img src={arthicaLogo} alt="Arthica" className="h-4" />
+                      <span className="font-semibold text-white text-xs">Arthica</span>
                     </div>
-                    <p className="text-xs text-white/70 mb-2">© 2025 Arthica. All rights reserved.</p>
-                    <a href="mailto:arthicaai@gmail.com" className="text-xs text-white/70 hover:text-white transition-colors">
-                      arthicaai@gmail.com
-                    </a>
+                    <p className="text-xs text-white/50">© 2025 Arthica • arthicaai@gmail.com</p>
                   </div>
                 </div>
               </CarouselItem>
