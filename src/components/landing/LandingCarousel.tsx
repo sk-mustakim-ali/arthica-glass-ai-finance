@@ -35,10 +35,10 @@ const LandingCarousel = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="min-h-screen bg-gradient-hero text-white flex flex-col">
+    <div className="fixed inset-0 bg-background overflow-hidden">
+      <div className="h-full bg-gradient-hero text-white flex flex-col overflow-hidden">
         {/* Fixed Navigation */}
-        <nav className="w-full z-50 glass-card safe-area-top">
+        <nav className="w-full z-50 glass-card safe-area-top shrink-0">
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -61,41 +61,41 @@ const LandingCarousel = () => {
           </div>
         </nav>
 
-        {/* Carousel Content */}
-        <div className="flex-1 flex flex-col">
-          <Carousel setApi={setApi} className="flex-1" opts={{ align: "start", loop: false }}>
+        {/* Carousel Content - Fixed height, no scroll */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <Carousel setApi={setApi} className="flex-1 min-h-0" opts={{ align: "start", loop: false }}>
             <CarouselContent className="h-full">
               {/* Slide 1: Hero */}
-              <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-between px-6 py-8">
-                  <div className="flex-1 flex flex-col justify-center">
+              <CarouselItem className="h-full overflow-hidden">
+                <div className="h-full flex flex-col justify-between px-6 py-6 overflow-hidden">
+                  <div className="flex-1 flex flex-col justify-center min-h-0">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6 }}
                       className="text-center"
                     >
-                      <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <img src={arthicaLogo} alt="Arthica" className="h-12" />
+                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <img src={arthicaLogo} alt="Arthica" className="h-10" />
                       </div>
-                      <h1 className="text-4xl font-bold mb-6 leading-tight">
+                      <h1 className="text-3xl font-bold mb-4 leading-tight">
                         AI that turns financial confusion into{" "}
                         <span className="gradient-text">clarity</span>
                       </h1>
-                      <p className="text-lg text-white/70 mb-8 max-w-sm mx-auto">
+                      <p className="text-base text-white/70 mb-6 max-w-sm mx-auto">
                         Your personal AI companion for understanding money and making confident decisions.
                       </p>
                     </motion.div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 shrink-0">
                     <Link to="/signup" className="block">
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-14 w-full">
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-12 w-full">
                         Start Your Journey
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
                     <Link to="/login" className="block">
-                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-14 w-full">
+                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-12 w-full">
                         I already have an account
                       </Button>
                     </Link>
@@ -104,19 +104,19 @@ const LandingCarousel = () => {
               </CarouselItem>
 
               {/* Slide 2: Features */}
-              <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-center px-6 py-8">
-                  <h2 className="text-2xl font-bold text-white mb-2 text-center">What Arthica Does</h2>
-                  <p className="text-sm text-white/70 mb-6 text-center">Simple steps to control your finances</p>
-                  <div className="space-y-4">
+              <CarouselItem className="h-full overflow-hidden">
+                <div className="h-full flex flex-col justify-center px-6 py-6 overflow-hidden">
+                  <h2 className="text-2xl font-bold text-white mb-2 text-center shrink-0">What Arthica Does</h2>
+                  <p className="text-sm text-white/70 mb-4 text-center shrink-0">Simple steps to control your finances</p>
+                  <div className="space-y-3 shrink-0">
                     {features.map((feature) => (
-                      <div key={feature.title} className="glass-card p-4 flex items-start gap-4">
-                        <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-                          <feature.icon className="h-6 w-6 text-primary" />
+                      <div key={feature.title} className="glass-card p-3 flex items-start gap-3">
+                        <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                          <feature.icon className="h-5 w-5 text-primary" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white mb-1">{feature.title}</h3>
-                          <p className="text-sm text-white/70">{feature.description}</p>
+                        <div className="min-w-0">
+                          <h3 className="text-base font-semibold text-white mb-0.5">{feature.title}</h3>
+                          <p className="text-xs text-white/70 leading-relaxed">{feature.description}</p>
                         </div>
                       </div>
                     ))}
@@ -125,19 +125,19 @@ const LandingCarousel = () => {
               </CarouselItem>
 
               {/* Slide 3: Why Arthica */}
-              <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-center px-6 py-8">
-                  <h2 className="text-2xl font-bold text-white mb-2 text-center">Why Arthica?</h2>
-                  <p className="text-sm text-white/70 mb-6 text-center">Built different, built better</p>
-                  <div className="space-y-4">
+              <CarouselItem className="h-full overflow-hidden">
+                <div className="h-full flex flex-col justify-center px-6 py-6 overflow-hidden">
+                  <h2 className="text-2xl font-bold text-white mb-2 text-center shrink-0">Why Arthica?</h2>
+                  <p className="text-sm text-white/70 mb-4 text-center shrink-0">Built different, built better</p>
+                  <div className="space-y-3 shrink-0">
                     {reasons.map((reason) => (
-                      <div key={reason.title} className="glass-card p-4 flex items-start gap-4">
-                        <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center shrink-0">
-                          <reason.icon className="h-6 w-6 text-secondary" />
+                      <div key={reason.title} className="glass-card p-3 flex items-start gap-3">
+                        <div className="w-10 h-10 bg-secondary/20 rounded-xl flex items-center justify-center shrink-0">
+                          <reason.icon className="h-5 w-5 text-secondary" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white mb-1">{reason.title}</h3>
-                          <p className="text-sm text-white/70">{reason.description}</p>
+                        <div className="min-w-0">
+                          <h3 className="text-base font-semibold text-white mb-0.5">{reason.title}</h3>
+                          <p className="text-xs text-white/70 leading-relaxed">{reason.description}</p>
                         </div>
                       </div>
                     ))}
@@ -146,50 +146,50 @@ const LandingCarousel = () => {
               </CarouselItem>
 
               {/* Slide 4: CTA */}
-              <CarouselItem className="h-full">
-                <div className="h-full flex flex-col justify-between px-6 py-8">
-                  <div className="flex-1 flex flex-col justify-center">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <Sparkles className="h-8 w-8 text-primary" />
+              <CarouselItem className="h-full overflow-hidden">
+                <div className="h-full flex flex-col justify-between px-6 py-6 overflow-hidden">
+                  <div className="flex-1 flex flex-col justify-center min-h-0">
+                    <div className="text-center mb-4">
+                      <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Sparkles className="h-7 w-7 text-primary" />
                       </div>
-                      <h2 className="text-3xl font-bold text-white mb-4">
-                        Ready to take control of your finances?
+                      <h2 className="text-2xl font-bold text-white mb-3">
+                        Ready to take control?
                       </h2>
-                      <p className="text-base text-white/70 max-w-sm mx-auto">
-                        Join thousands of students building smarter money habits with AI-powered insights
+                      <p className="text-sm text-white/70 max-w-sm mx-auto">
+                        Join thousands of students building smarter money habits
                       </p>
                     </div>
                     
-                    <div className="glass-card p-5 mb-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                          <Target className="h-6 w-6 text-green-400" />
+                    <div className="glass-card p-4 mb-4 shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center shrink-0">
+                          <Target className="h-5 w-5 text-green-400" />
                         </div>
-                        <div>
-                          <p className="text-white font-semibold">85% of students</p>
-                          <p className="text-sm text-white/70">found Arthica helpful in managing finances</p>
+                        <div className="min-w-0">
+                          <p className="text-white font-semibold text-sm">85% of students</p>
+                          <p className="text-xs text-white/70">found Arthica helpful</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2 shrink-0">
                     <Link to="/signup" className="block">
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-14 w-full">
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-base px-6 h-12 w-full">
                         Start Using Arthica
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
                     <Link to="/about" className="block">
-                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-14 w-full">
+                      <Button size="lg" variant="ghost" className="glass-button text-white text-base px-6 h-12 w-full">
                         About Us
                       </Button>
                     </Link>
                   </div>
                   
                   {/* Footer */}
-                  <div className="mt-6 pt-4 border-t border-white/10 text-center">
+                  <div className="mt-4 pt-3 border-t border-white/10 text-center shrink-0">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <img src={arthicaLogo} alt="Arthica" className="h-4" />
                       <span className="font-semibold text-white text-xs">Arthica</span>
@@ -202,7 +202,7 @@ const LandingCarousel = () => {
           </Carousel>
 
           {/* Navigation Dots & Arrows */}
-          <div className="pb-8 safe-area-bottom">
+          <div className="py-4 safe-area-bottom shrink-0">
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={() => api?.scrollPrev()}
@@ -233,8 +233,8 @@ const LandingCarousel = () => {
               </button>
             </div>
             
-            <p className="text-center text-xs text-white/50 mt-3">
-              Swipe or use arrows to navigate
+            <p className="text-center text-xs text-white/50 mt-2">
+              Swipe to navigate
             </p>
           </div>
         </div>
